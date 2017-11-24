@@ -28,11 +28,12 @@ public class Main {
 	public static void main(String[] args) {
 		
 		// Questi saranno gli input dell'utente
-		final int numR = 10;
-		final int numC = 10;
-		final int xO = 5;
-		final int yO = 5;
-		final double percentualeOstacoliVoluta = 0.8;
+		System.out.println("Ciaone");
+		final int numR = 100;
+		final int numC = 200;
+		final int xO = 90;
+		final int yO = 190;
+		final double percentualeOstacoliVoluta = 0.50;
 		
 		int numCaselleTot = numR*numC;
 		int numOstacoliVoluti = (int) (numCaselleTot*percentualeOstacoliVoluta);
@@ -81,23 +82,16 @@ public class Main {
 		boolean startChange = true;		//deve diventare false, ovvero deve arrivare a rappresentare un punto occupato
 		
 		while(numOstacoliDaTogliere > 0) {
-			System.out.println("Lista posizioni libere: "+liberateGlob);
-			System.out.println("numOstacoliDaTogliere: "+numOstacoliDaTogliere);
+			//System.out.println("Lista posizioni libere: "+liberateGlob);
+			//System.out.println("numOstacoliDaTogliere: "+numOstacoliDaTogliere);
 			int rX = 0;
 			int rY = 0;
 			Point2D newStart = null;
 			
-			/*while(startChange) {
-				rX = random.nextInt(spazio.length);
-				rY = random.nextInt(spazio[0].length);
-				newStart = new Point2D.Double(rX,rY);
-				startChange = verificaCoordinateLiberaGlob(newStart);	//esce quando prendo una posizione non libera
-			}*/
-			
 			//prendo una posizione random, libera o occupata che sia
 			rX = random.nextInt(spazio.length);
 			rY = random.nextInt(spazio[0].length);
-			System.out.println("Nuovo start: ["+rX+","+rY+"]");
+			//System.out.println("Nuovo start: ["+rX+","+rY+"]");
 			
 			numOstacoliDaTogliere = secondiPercorsi(rX, rY, numOstacoliDaTogliere, spazio);
 			
@@ -118,13 +112,13 @@ public class Main {
 			Point2D p = new Point2D.Double(rowProx,colProx);
 			
 			if(rowProx < 0 || rowProx >= spazio.length || colProx < 0 || colProx >= spazio[0].length) {
-				System.out.println("["+rowProx+","+colProx+"], fuori spazio.");
+				//System.out.println("["+rowProx+","+colProx+"], fuori spazio.");
 				break;
 			} else {
 				if(verificaCoordinateLiberaGlob(p)) {
-					System.out.println("["+rowProx+","+colProx+"], posizione già libera.");
+					//System.out.println("["+rowProx+","+colProx+"], posizione già libera.");
 				} else {
-					System.out.println("["+rowProx+","+colProx+"], posizione liberata.");
+					//System.out.println("["+rowProx+","+colProx+"], posizione liberata.");
 					liberateGlob.add(p);
 					numOstacoliDaTogliere--;
 				}
@@ -152,18 +146,18 @@ public class Main {
 			Point2D p = new Point2D.Double(rowProx,colProx);
 			
 			if(rowProx < 0 || rowProx >= spazio.length || colProx < 0 || colProx >= spazio[0].length) {
-				System.out.println("["+rowProx+","+colProx+"], fuori spazio.");
+				//System.out.println("["+rowProx+","+colProx+"], fuori spazio.");
 				
 			} else {
 				if(verificaCoordinateLiberaGlob(p)) {
-					System.out.println("["+rowProx+","+colProx+"], posizione già liberata da ricerca precedente, fine ricerca.");
+					//System.out.println("["+rowProx+","+colProx+"], posizione già liberata da ricerca precedente, fine ricerca.");
 					terminazioneConnessa = true;
 					
 					rowPrec = rowProx;
 					colPrec = colProx;
 					break;
 				}else if(verificaCoordinateLiberaAtt(p)) {
-					System.out.println("["+rowProx+","+colProx+"], posizione già liberata da ricerca attuale, refresh della posizione in lista.");
+					//System.out.println("["+rowProx+","+colProx+"], posizione già liberata da ricerca attuale, refresh della posizione in lista.");
 					eliminaPosizioneDuplicata(p);
 					liberateAtt.add(p);
 					
@@ -171,7 +165,7 @@ public class Main {
 					colPrec = colProx;
 					
 				} else {
-					System.out.println("["+rowProx+","+colProx+"], posizione liberata");
+					//System.out.println("["+rowProx+","+colProx+"], posizione liberata");
 					liberateAtt.add(p);
 					numOstacoliDaTogliere--;
 					
@@ -192,14 +186,14 @@ public class Main {
 			Point2D p = new Point2D.Double(rowProx,colProx);
 			
 			if(rowProx < 0 || rowProx >= spazio.length || colProx < 0 || colProx >= spazio[0].length) {
-				System.out.println("["+rowProx+","+colProx+"], fuori spazio.");
+				//System.out.println("["+rowProx+","+colProx+"], fuori spazio.");
 			} else {
 				if(verificaCoordinateLiberaGlob(p)) {
-					System.out.println("["+rowProx+","+colProx+"], terminato percorso connesso, fine ultima ricerca.");
+					//System.out.println("["+rowProx+","+colProx+"], terminato percorso connesso, fine ultima ricerca.");
 					terminazioneConnessa = true;
 					break;
 				}else if(verificaCoordinateLiberaAtt(p)) {
-					System.out.println("["+rowProx+","+colProx+"], posizione già liberata da ricerca attuale, refresh della posizione in lista.");
+					//System.out.println("["+rowProx+","+colProx+"], posizione già liberata da ricerca attuale, refresh della posizione in lista.");
 					eliminaPosizioneDuplicata(p);
 					liberateAtt.add(p);
 					
@@ -207,10 +201,10 @@ public class Main {
 					colPrec = colProx;
 					
 				} else {
-					System.out.println("["+rowProx+","+colProx+"], aggiunta e rimozione FIFO...");
+					//System.out.println("["+rowProx+","+colProx+"], aggiunta e rimozione FIFO...");
 					liberateAtt.remove(0);	//rimuovo il primo point2d della lista
 					liberateAtt.add(p);
-					System.out.println("liberateAtt: "+liberateAtt);
+					//System.out.println("liberateAtt: "+liberateAtt);
 					rowPrec = rowProx;
 					colPrec = colProx;
 				}
@@ -256,32 +250,13 @@ public class Main {
 	
 	
 	/*
-	 * Fai una rappresentazione grafica dello spazio tramite variabili glob*/
-	public static void stampaSpazio2(Casella[][]spazio) {
-		for(int row = 0; row < spazio.length; row++) {
-			for(int col = 0; col < spazio[0].length; col++) {
-				Point2D p = new Point2D.Double(row, col);
-				if(spazio[row][col].isOrigine()) {
-					System.out.print("[ O ]");
-				}else if(verificaCoordinateLiberaGlob(p)) {
-					System.out.print("[   ]");
-				} else {
-					System.out.print("[occ]");
-				}
-			}
-			System.out.println();
-			
-		}
-	}
-	
-	/*
 	 * Fai una rappresentazione grafica dello spazio*/
 	public static void stampaSpazio(Casella[][]spazio) {
 		for(int row = 0; row < spazio.length; row++) {
 			for(int col = 0; col < spazio[0].length; col++) {
 				if(spazio[row][col].isOrigine()) {
 					System.out.print("[ O ]");
-				}else if(spazio[row][col].isLibera()) {
+				}else if(spazio[row][col].isLibera() && !spazio[row][col].isOrigine()) {
 					System.out.print("[   ]");
 				} else {
 					System.out.print("[occ]");
