@@ -1,22 +1,25 @@
+import java.awt.Point;
 
 public enum Direzione {
-	N(0,-1,0),
-	S(1,1,0),
-	E(2,0,1),
-	W(3,0,-1),
-	NE(4,-1,1),
-	NW(5,-1,-1),
-	SE(6,1,1),
-	SW(7,1,-1);
+	
+	N(0, -1, 0),
+	S(1, 1, 0),
+	E(2, 0, 1),
+	W(3, 0, -1),
+	NE(4, -1, 1),
+	NW(5, -1, -1),
+	SE(6, 1, 1),
+	SW(7, 1, -1),
+	d(0, 0, 0);
 	
 	private final int index;
 	private final int dirX;
 	private final int dirY;
 	
 	Direzione(int index, int dirX, int dirY){
-		this.index=index;
-		this.dirX=dirX;
-		this.dirY=dirY;
+		this.index = index;
+		this.dirX = dirX;
+		this.dirY = dirY;
 	}
 
 	public int getIndex() {
@@ -29,6 +32,88 @@ public enum Direzione {
 
 	public int getDirY() {
 		return dirY;
+	}
+	
+	public static Direzione getCurrespondentDirezione(Point c1, Point c2){
+		
+		Point c = new Point();
+		c.setLocation(c2.getX() - c1.getX(), c2.getY() - c1.getY());
+		// Ritorna la mossa corrispondente se da c1 voglio andare in c2, 
+		// dove c è la coordinata è la differenza tra due coordinate c1 e c2
+		
+		if(c.x == -1 && c.y == 0){
+			return N;
+		} else if(c.x == 1 && c.y == 0){
+			return S;
+		} else if(c.x == 0 && c.y == -1){
+			return W;
+		} else if(c.x == 0 && c.y == 1){
+			return E;
+		} else if(c.x == -1 && c.y == -1){
+			return NW;
+		} else if(c.x == -1 && c.y == 1){
+			return NE;
+		} else if(c.x == 1 && c.y == -1){
+			return SW;
+		} else if(c.x == 1 && c.y == 1){
+			return SE;
+		} else{
+			System.out.println("\n!!!ERRORE!!! vedi enum Direzione ritorna null getCurrespodentMossa() " + c.x + " " + c.y);
+			return null;
+		}
+	}
+	
+	public double getDistanza(){
+		switch(this){
+			case N:
+				return 1;
+			case S:
+				return 1;
+			case W:
+				return 1;
+			case E:
+				return 1;
+			case NW:
+				return Math.sqrt(2);
+			case NE:
+				return Math.sqrt(2);
+			case SW:
+				return Math.sqrt(2);
+			case SE:
+				return Math.sqrt(2);
+			default:
+				return 0;
+		}
+	}
+	
+	public Point getCurrespondentPosition(){
+		
+		switch(this){
+			case N:
+				return new Point(-1, 0);
+			case S:
+				return new Point(1, 0);
+			case W:
+				return new Point(0, -1);
+			case E:
+				return new Point(0, 1);
+			case NW:
+				return new Point(-1, -1);
+			case NE:
+				return new Point(-1, 1);
+			case SW:
+				return new Point(1, -1);
+			case SE:
+				return new Point(1, 1);
+			default:
+				System.out.println("\n!!!ERRORE!!! vedi enum Direzione ritorna null getCurrespodentPosition() ");
+				return null;
+		}
+		
+	}
+	
+	public String toString(){
+		return Direzione.this.name() +" dist = " + this.getDistanza();
 	}
 	
 	/*

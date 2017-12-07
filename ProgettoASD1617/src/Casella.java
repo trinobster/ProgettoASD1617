@@ -1,10 +1,21 @@
+import java.awt.Point;
 import java.util.ArrayList;
+import java.util.Iterator;
 
-public class Casella {
+public class Casella{
+	public static final String DEFAULT = "default";
+	public static final String VERDE = "verde";
+	public static final String BIANCA = "bianca";
+	public static final String ANGOLO = "angolo";
 	
 	public boolean origine;
 	public boolean libera;
 	public int numRiga, numColonna;
+	public Point coordinata;
+	public Direzione primaMossaRisgraf;
+	public Direzione primaMossaRispref;
+	public double pesoCAMRisgraf;
+	public String tipologia;
 	//public ArrayList<MyUtils.Direzione> direzioniDisponibili;
 	
 
@@ -13,10 +24,15 @@ public class Casella {
 		this.libera = libera;
 		this.numRiga = numRiga;
 		this.numColonna = numColonna;
+		this.coordinata = new Point(numRiga, numColonna);
+		
+		this.tipologia = DEFAULT;
+		this.primaMossaRispref = Direzione.d;
 	}
 	
-	public void muoviti() {
-		
+	public Casella(){
+		this.origine = false;
+		this.libera = true;
 	}
 
 	public boolean isOrigine() {
@@ -51,13 +67,11 @@ public class Casella {
 		this.numColonna = numColonna;
 	}
 	
-	/*
-	 * Override di toString, così mi stampa bene le caselle*/
 	public String toString() {
-		return "["+this.getNumRiga()+","+this.getNumColonna()+"]";
+		return "[" + this.getNumRiga() + "," + this.getNumColonna() + "]" + " libera = " + libera;
 	}
-	
-	
-	
 
+	public void muoviti() {
+		
+	}
 }
