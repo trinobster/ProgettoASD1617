@@ -24,7 +24,7 @@ public class SettaCaselle {
 		this.spazio = spazio;
 		
 		this.origine = origine;
-		this.numR = spazio[0].length;
+		this.numR = spazio.length;
 		this.numC = spazio[1].length;
 		
 		this.hmap = new HashMap<Point, ArrayList<Point>>();

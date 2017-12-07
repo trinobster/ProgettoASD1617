@@ -24,10 +24,10 @@ public class Main {
 	public static ArrayList<Point2D> liberateGlob = new ArrayList<Point2D>();
 	
 	// Questi saranno gli input dell'utente
-	public static int numR = 100;
-	public static int numC = 50;
-	public static final int xO = 50;
-	public static final int yO = 25;
+	public static int numR = 10;
+	public static int numC = 5;
+	public static final int xO = 2;
+	public static final int yO = 2;
 	public static final double percentualeOstacoliVoluta = 0.3;
 	
 	public static void main(String[] args) {
@@ -49,32 +49,14 @@ public class Main {
 		// 3. Utilizzo di Risgraf per determinare PM e pesi minimi associati a tutte le caselle dello spazio
 		Risgraf risgraf = new Risgraf(graph, mySpace);
 		risgraf.risolutore();
-	//	risgraf.stampaSpazioPM();
+		risgraf.stampaSpazioPM();
 		
-		SettaCaselle rispref = new SettaCaselle(space, new Point(xO, yO));
-		rispref.risolutore();
-		rispref.stampaSpazioVerdiBianche();
-	//	rispref.stampaSpazioPMP();
+		SettaCaselle settaCaselle = new SettaCaselle(space, new Point(xO, yO));
+		settaCaselle.risolutore();
+	//	rispref.stampaSpazioVerdiBianche();
+		settaCaselle.stampaSpazioPMP();
 		
-		System.out.println(rispref.spazio[xO + 1][yO].tipologia);
-		
-		System.out.println(rispref.spazio[xO + 1][yO - 1].tipologia);
-		
-		System.out.println(rispref.spazio[xO + 1][yO + 1].tipologia);
-
-
-	/**	Casella d = new Casella(false, true, 3, 3);
-		Casella origine = space[xO][yO];
-		
-		System.out.println();
-        System.out.println("Shortest path from " + origine.toString() + " to " + d.toString() + ": ");
-        // questo metodo è deprecato..
-        DijkstraShortestPath<Casella, MyDefaultWeightedEdge> dijkstraAlg = new DijkstraShortestPath<>(grafo);
-        
-        SingleSourcePaths<Casella, DefaultWeightedEdge> iPaths = dijkstraAlg.getPaths(origine);
-        
-       System.out.println(iPaths.getPath(d) + "\n");
-        System.out.println("Peso del percorso trovato: " + dijkstraAlg.getPathWeight(origine, d));*/
+		Rispref rispref = new Rispref(settaCaselle.hmap);
 				
 				
 	}
