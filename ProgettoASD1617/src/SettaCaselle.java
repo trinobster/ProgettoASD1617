@@ -17,6 +17,8 @@ public class SettaCaselle {
 	public Point origine;
 	public int numR, numC, i, j;
 	
+	// loda il solEEEEEEEEEEEEEEE
+	
 	public SettaCaselle(Casella[][] spazio, Point origine){
 		this.caselleVerdi = new Stack<>();
 		this.caselleBianche = new Stack<>();
