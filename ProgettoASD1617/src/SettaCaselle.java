@@ -339,7 +339,7 @@ public class SettaCaselle {
 		
 		i = origine.x + 1;
 		j = origine.y - 1;
-		while(i < numR && j > -1 && spazio[i][j].libera){
+		while(i < numR && j > -1 && spazio[i][j].libera){ //quadrante SW
 			scorriOvest(i, j);
 			scorriSud(i + 1, j);
 			i++;
@@ -348,7 +348,7 @@ public class SettaCaselle {
 		
 		i = origine.x - 1;
 		j = origine.y - 1;
-		while(i > -1 && j > -1 && spazio[i][j].libera){
+		while(i > -1 && j > -1 && spazio[i][j].libera){ //quadrante NW
 			scorriOvest(i, j);
 			scorriNord(i - 1, j);
 			i--;
@@ -394,7 +394,7 @@ public class SettaCaselle {
 		i = origine.x + 1;
 		j = origine.y + 1;
 		while(i < numR && j < numC && spazio[i][j].libera){ 
-			// diagonale SW
+			// diagonale SE
 			setTipologiaVerde(i, j);
 			i++;
 			j++;
@@ -405,7 +405,7 @@ public class SettaCaselle {
 		i = origine.x + 1;
 		j = origine.y - 1;
 		while(i < numR && j > -1 && spazio[i][j].libera){ 
-			// diagonale SE
+			// diagonale SW
 			setTipologiaVerde(i, j);
 			i++;
 			j--;

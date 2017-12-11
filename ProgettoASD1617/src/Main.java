@@ -24,11 +24,11 @@ public class Main {
 	public static ArrayList<Point2D> liberateGlob = new ArrayList<Point2D>();
 	
 	// Questi saranno gli input dell'utente
-	public static int numR = 10;
-	public static int numC = 5;
-	public static final int xO = 2;
-	public static final int yO = 2;
-	public static final double percentualeOstacoliVoluta = 0.3;
+	public static int numR = 8;
+	public static int numC = 10;
+	public static final int xO = 3;
+	public static final int yO = 3;
+	public static final double percentualeOstacoliVoluta = 0.5;
 	
 	public static void main(String[] args) {
 		
@@ -51,13 +51,25 @@ public class Main {
 		risgraf.risolutore();
 		risgraf.stampaSpazioPM();
 		
+		
+		// 4. Parte di Rispref
 		SettaCaselle settaCaselle = new SettaCaselle(space, new Point(xO, yO));
 		settaCaselle.risolutore();
-	//	rispref.stampaSpazioVerdiBianche();
+		//rispref.stampaSpazioVerdiBianche();
+		settaCaselle.stampaSpazioVerdiBianche();
+		settaCaselle.printHMap();
 		settaCaselle.stampaSpazioPMP();
 		
-		Rispref rispref = new Rispref(settaCaselle.hmap);
-				
+		// Assegnamento della prima generazione di coperture
+		Rispref rispref = new Rispref(settaCaselle.hmap, space);
+		rispref.controllaHashmapAttuale();
+		rispref.printHashmap();
+		
+		/* Qui bisogna trovare le caselle d'angolo di seconda, terza ecc. generazione, intervallando ogni volta
+		 * l'assegnamento della n-esima generazione di coperture, fino a quando ogni casella bianca fa parte 
+		 * di almeno una copertura
+		*/
+		
 				
 	}
 }
