@@ -62,6 +62,7 @@ public class SettaCaselle {
 					System.out.print(print);
 				} else {
 					System.out.print("[occ]");
+				//	System.out.println(spazio[row][col].tipologia);
 				}
 			}
 			System.out.println();
@@ -185,7 +186,7 @@ public class SettaCaselle {
 	}
 	
 	public boolean thirdInsideControl(Point temp, Point b){
-		if(isInsideSpace(temp) && spazio[temp.x][temp.y].tipologia.equalsIgnoreCase(Casella.VERDE) && isDistantOne(temp, b)){
+		if(isInsideSpace(temp) && !spazio[temp.x][temp.y].tipologia.equalsIgnoreCase(Casella.BIANCA) && isDistantOne(temp, b)){
 		//	System.out.println("terza = (" + temp.x + ", " + temp.y + ")");
 			return true;
 		} else{

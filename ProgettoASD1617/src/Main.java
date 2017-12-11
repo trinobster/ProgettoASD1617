@@ -49,15 +49,13 @@ public class Main {
 		// 3. Utilizzo di Risgraf per determinare PM e pesi minimi associati a tutte le caselle dello spazio
 		Risgraf risgraf = new Risgraf(graph, mySpace);
 		risgraf.risolutore();
-		risgraf.stampaSpazioPM();
+	//	risgraf.stampaSpazioPM();
 		
-		SettaCaselle settaCaselle = new SettaCaselle(space, new Point(xO, yO));
-		settaCaselle.risolutore();
-	//	rispref.stampaSpazioVerdiBianche();
-		settaCaselle.stampaSpazioPMP();
-		
-		Rispref rispref = new Rispref(settaCaselle.hmap);
-				
+		Rispref rispref = new Rispref(space, new Point(xO, yO));
+		rispref.settaCaselle.stampaSpazioPMP();
+		rispref.controllaHashmapAttuale();
+		rispref.printHashmap();
+	
 				
 	}
 }
