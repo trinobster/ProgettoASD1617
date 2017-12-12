@@ -16,6 +16,7 @@ public class Casella{
 	public Direzione primaMossaRispref;
 	public double pesoCAMRisgraf;
 	public String tipologia;
+	public ArrayList<Point> coordinateAngoliAssociati = null; // serve solo alle caselle bianche
 	//public ArrayList<MyUtils.Direzione> direzioniDisponibili;
 	
 
@@ -35,6 +36,17 @@ public class Casella{
 		this.libera = true;
 	}
 
+	public void creaCoordinateAngoli(){
+		this.coordinateAngoliAssociati = new ArrayList<>();
+	}
+	
+	public void addAngolo(Point a){
+		if(coordinateAngoliAssociati == null){
+			creaCoordinateAngoli();
+		}
+		coordinateAngoliAssociati.add(a);
+	}
+	
 	public boolean isOrigine() {
 		return origine;
 	}
