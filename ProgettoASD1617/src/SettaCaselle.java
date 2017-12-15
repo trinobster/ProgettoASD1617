@@ -3,6 +3,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Stack;
+
+import MyUtilities.MyFormulas;
 import MyUtilities.MyUtil;
 
 public class SettaCaselle {
@@ -44,6 +46,7 @@ public class SettaCaselle {
 		caselleAngolo();
 		//printHMap();
 		settaDefaultPMP(caselleVerdi);
+		settaDefaultDlib(caselleVerdi);		// assegno anche le dlib (da origine alle verdi)
 	}
 	
 	public void stampaSpazioPMP(){
@@ -71,9 +74,18 @@ public class SettaCaselle {
 		}
 	}
 	
+	public void settaDefaultDlib(Stack<Casella> caselle) {
+		Casella c;
+		for(int i = 0; i < caselle.size(); i++) {
+			c = caselle.get(i);
+			double dlib = MyFormulas.dlibComputation(origine, c.coordinata);
+			spazio[c.coordinata.x][c.coordinata.y].pesoCAMRispref = dlib;
+		}
+	}
+	
 	public void settaDefaultPMP(Stack<Casella> caselle){
 		Casella c;
-		// Assegna PMP di default a tutte le caselle verdi e bianche
+		// Assegna PMP di default a tutte le caselle in input
 		for(int i = 0; i < caselle.size(); i++){
 			c = caselle.get(i);
 			Direzione defaultPMP = getDefaultPMP(c.coordinata);
@@ -81,6 +93,7 @@ public class SettaCaselle {
 		}
 	}
 	
+	// Non è stato utilizzato getCurrespondentDirezione perché questi calcoli sottostanti sono più efficienti degli if del metodo
 	public Direzione getDefaultPMP(Point p){
 		if(p.x - origine.x > 0){ // righe sotto l'origine
 			if(p.y - origine.y > 0){// quadrante SE

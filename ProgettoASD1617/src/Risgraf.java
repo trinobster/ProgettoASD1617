@@ -57,6 +57,8 @@ public class Risgraf {
 	}
 	
 	public void stampaSpazioPM(){
+		System.out.println("Spazio delle prime mosse di Risgraf:");
+		
 		String mossa, print;
 		Casella[][] spazio = mySpace.spazio;
 		

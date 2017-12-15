@@ -3,6 +3,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import MyUtilities.MyFormulas;
+
 public class Rispref {
 	
 	public HashMap<Point, ArrayList<Point>> hmap;
@@ -25,7 +27,8 @@ public class Rispref {
 
 	public void risolutore(){
 		controllaHashmapAttuale();
-		avantiDopoCopertura();
+		//avantiDopoCopertura();
+		avantiDopoCopertura_V2();
 	}
 	
 	/*  Ha in input una casella d'angolo e la casella bianca adiacente diagonalmente
@@ -243,6 +246,7 @@ public class Rispref {
 	
 	public void printHashmap(){
 		String print = "";
+		System.out.println("\nPrint della hashmap:");
 		
 		for(Map.Entry<Point, ArrayList<Point>> kv: hmap.entrySet()){
 			print = print + "\nChiave B = (" + kv.getKey().x + ", " + kv.getKey().y + ")"
@@ -257,6 +261,12 @@ public class Rispref {
 		System.out.println(print);
 	}
 	
+	// Assegna le PMP alle caselle bianche che hanno caselle d'angolo con la stessa PMP oppure
+	/* se le caselle d'angolo hanno PMP diverse controlla qual è il dlib più corto e assegna la PMP della casella
+	 * d'angolo corrispondente
+	 * 
+	 * NB: devo sempre assegnare dlib, quindi potrei semplificare questo metodo e chiamare valutaPMPeDlib per ogni situazione
+	 * */
 	public void avantiDopoCopertura(){
 		//Rossana
 		Direzione pmp = Direzione.d;
@@ -270,6 +280,8 @@ public class Rispref {
 			caselleAngolo = kv.getValue();
 			pmp = Direzione.d;
 			daValutare = false; // Se  alla fine del metodo è true, sarà da valutare la PMP di B
+			
+			
 			
 			if(caselleAngolo.size() > 1){
 				
@@ -285,7 +297,7 @@ public class Rispref {
 						+ " direzione A = " + spazio[a.x][a.y].primaMossaRispref.name());*/
 					} else{
 						// Se scorrendo le caselle angolo di b ne trovo una con PMP diversa dalle altre devo valutare la PMP di b
-						valutaPMP(kv.getKey(), caselleAngolo);
+						valutaPMPeDlib(kv.getKey(), caselleAngolo);
 						// ed interrompo lo scorrimento delle caselle d'angolo
 						i = caselleAngolo.size();
 						daValutare = true;
@@ -307,7 +319,78 @@ public class Rispref {
 		}
 	}
 	
-	public void valutaPMP(Point b, ArrayList<Point> caselleAngolo){
+	public void avantiDopoCopertura_V2() {
+		ArrayList<Point> caselleAngolo;
+		
+		for(Map.Entry<Point, ArrayList<Point>> kv: hmap.entrySet()) {
+			caselleAngolo = kv.getValue();
+			
+			valutaPMPeDlib(kv.getKey(), caselleAngolo);
+		}
+	}
+	
+	
+	// Calcola la dlib minima tra la casella bianca e tutte le sue angolo, poi assegna essa e la PMP dell'angolo corrispondente alla bianca
+	public void valutaPMPeDlib(Point b, ArrayList<Point> caselleAngolo){
+		double dlibMin = 9999;
+		int indexAngoloMin = 0;
+		
+		for(int i = 0; i < caselleAngolo.size(); i++) {
+			double dlibTemp = MyFormulas.dlibComputation(caselleAngolo.get(i), b);
+			if(dlibTemp < dlibMin) {
+				dlibMin = dlibTemp;
+				indexAngoloMin = i;
+			}
+		}
+		
+		// assegno PMP e dlib alla casella bianca
+		spazio[b.x][b.y].primaMossaRispref = spazio[caselleAngolo.get(indexAngoloMin).x][caselleAngolo.get(indexAngoloMin).y].primaMossaRispref;
+		spazio[b.x][b.y].pesoCAMRispref = spazio[caselleAngolo.get(indexAngoloMin).x][caselleAngolo.get(indexAngoloMin).y].pesoCAMRispref + dlibMin;
 		
 	}
+	
+	public void stampaSpazioPM(){
+		System.out.println("\nSpazio delle prime mosse di Rispref:");
+		
+		String mossa, print;
+		for(int row = 0; row < spazio.length; row++) {
+			for(int col = 0; col < spazio[0].length; col++) {
+				if(spazio[row][col].isOrigine()) {
+					System.out.print("[*O*]");
+				}else if(spazio[row][col].isLibera() && !spazio[row][col].isOrigine()) {
+					mossa = spazio[row][col].primaMossaRispref.name();
+					if(mossa.length() == 1){
+						print = "[ " + mossa + " ]";
+					} else{
+						print = "[ " + mossa + "]";
+					}
+					System.out.print(print);
+				} else {
+					System.out.print("[occ]");
+				}
+			}
+			System.out.println();
+		}
+	}
+	
+	public void stampaSpazioDlib(){
+		System.out.println("\nSpazio delle dlib di Rispref:");
+		
+		double dlib;
+		for(int row = 0; row < spazio.length; row++) {
+			for(int col = 0; col < spazio[0].length; col++) {
+				if(spazio[row][col].isOrigine()) {
+					System.out.print("[ *O* ]");
+				}else if(spazio[row][col].isLibera() && !spazio[row][col].isOrigine()) {
+					dlib = spazio[row][col].pesoCAMRispref;
+					System.out.printf("[%1.3f]", dlib);
+				} else {
+					System.out.print("[ occ ]");
+				}
+			}
+			System.out.println();
+		}
+	}
+	
+	
 }

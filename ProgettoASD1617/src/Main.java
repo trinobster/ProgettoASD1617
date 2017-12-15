@@ -28,7 +28,7 @@ public class Main {
 	public static int numC = 5;
 	public static final int xO = 2;
 	public static final int yO = 2;
-	public static final double percentualeOstacoliVoluta = 0.3;
+	public static final double percentualeOstacoliVoluta = 0.5;
 	
 	public static void main(String[] args) {
 		
@@ -53,8 +53,11 @@ public class Main {
 		
 		Rispref rispref = new Rispref(space, new Point(xO, yO));
 		rispref.settaCaselle.stampaSpazioPMP();
-		rispref.controllaHashmapAttuale();
-		rispref.printHashmap();
+		//rispref.controllaHashmapAttuale();	//in realtà qui devo richiamare "risolutore"
+		//rispref.printHashmap();
+		rispref.risolutore();
+		rispref.stampaSpazioPM();
+		rispref.stampaSpazioDlib();
 	
 				
 	}

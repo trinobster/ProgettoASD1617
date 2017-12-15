@@ -15,11 +15,11 @@ public class Casella{
 	public Direzione primaMossaRisgraf;
 	public Direzione primaMossaRispref;
 	public double pesoCAMRisgraf;
+	public double pesoCAMRispref;	//per sommare e salvare gradualmente i dlib in Rispref
 	public String tipologia;
 	public ArrayList<Point> coordinateAngoliAssociati = null; // serve solo alle caselle bianche
 	//public ArrayList<MyUtils.Direzione> direzioniDisponibili;
 	
-
 	public Casella(boolean origine, boolean libera, int numRiga, int numColonna) {
 		this.origine = origine;
 		this.libera = libera;
@@ -29,6 +29,7 @@ public class Casella{
 		
 		this.tipologia = DEFAULT;
 		this.primaMossaRispref = Direzione.d;
+		
 	}
 	
 	public Casella(){
