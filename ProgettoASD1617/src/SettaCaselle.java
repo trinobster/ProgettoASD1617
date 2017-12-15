@@ -1,11 +1,10 @@
+
 import java.awt.Point;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Stack;
-
 import MyUtilities.MyFormulas;
-import MyUtilities.MyUtil;
 
 public class SettaCaselle {
 	
@@ -15,11 +14,11 @@ public class SettaCaselle {
 	public Casella[][] spazio;
 	
 	public HashMap<Point, ArrayList<Point>> hmap; // mappa chiave(posizioni caselle biache) e valore(posizioni caselle angolo relative)
+//	public HashMap<Point, ArrayList<Point>> hmapCompleta;
 	
 	public Point origine;
 	public int numR, numC, i, j;
 	
-	// loda il solEEEEEEEEEEEEEEE
 	
 	public SettaCaselle(Casella[][] spazio, Point origine){
 		this.caselleVerdi = new Stack<>();
@@ -32,23 +31,11 @@ public class SettaCaselle {
 		this.numC = spazio[1].length;
 		
 		this.hmap = new HashMap<Point, ArrayList<Point>>();
+	//	this.hmapCompleta = new HashMap<Point, ArrayList<Point>>();
 	}
 	
 	//NB: scorrere indica che controlla se è libera, set non controlla
-	public void risolutore(){
-		// Per prima cosa ricerca le caselle verdi/libere sugli assi, sulle diagonali e sulle L e le inserisce in caselleVerdi
-		// oltre a riempire anche la pila di caselleBianche
-		scorriAssiOrigine();
-		scorriDiagonali();
-		scorriL();
-		
-		// cerca le caselle d'angolo che soddisfano le 3 condizioni e le inserisce nella pila caselleAngolo
-		caselleAngolo();
-		//printHMap();
-		settaDefaultPMP(caselleVerdi);
-		settaDefaultDlib(caselleVerdi);		// assegno anche le dlib (da origine alle verdi)
-	}
-	
+
 	public void stampaSpazioPMP(){
 		String mossa, print;
 		System.out.println();
@@ -74,26 +61,26 @@ public class SettaCaselle {
 		}
 	}
 	
-	public void settaDefaultDlib(Stack<Casella> caselle) {
+	public void settaDefaultPMP(){
 		Casella c;
-		for(int i = 0; i < caselle.size(); i++) {
-			c = caselle.get(i);
-			double dlib = MyFormulas.dlibComputation(origine, c.coordinata);
-			spazio[c.coordinata.x][c.coordinata.y].pesoCAMRispref = dlib;
-		}
-	}
-	
-	public void settaDefaultPMP(Stack<Casella> caselle){
-		Casella c;
-		// Assegna PMP di default a tutte le caselle in input
-		for(int i = 0; i < caselle.size(); i++){
-			c = caselle.get(i);
+		// Assegna PMP di default a tutte le caselle verdi
+		for(int i = 0; i < caselleVerdi.size(); i++){
+			c = caselleVerdi.get(i);
 			Direzione defaultPMP = getDefaultPMP(c.coordinata);
 			spazio[c.coordinata.x][c.coordinata.y].primaMossaRispref = defaultPMP;
 		}
 	}
 	
-	// Non è stato utilizzato getCurrespondentDirezione perché questi calcoli sottostanti sono più efficienti degli if del metodo
+	public void settaDefaultDlib() {
+		Casella c;
+		// Assegna dlib di default a tutte le caselle verdi
+		for(int i = 0; i < caselleVerdi.size(); i++) {
+			c = caselleVerdi.get(i);
+			double dlib = MyFormulas.dlibComputation(origine, c.coordinata);
+			spazio[c.coordinata.x][c.coordinata.y].pesoCAMRispref = dlib;
+		}
+	}
+	
 	public Direzione getDefaultPMP(Point p){
 		if(p.x - origine.x > 0){ // righe sotto l'origine
 			if(p.y - origine.y > 0){// quadrante SE
@@ -136,7 +123,15 @@ public class SettaCaselle {
 		System.out.println(print);
 	}
 	
-	public void caselleAngolo(){
+	public HashMap<Point, ArrayList<Point>> caselleAngolo(boolean passateSuccessive,
+			HashMap<Point, ArrayList<Point>> hmapCompleta, Casella[][] spazioRicevuto){
+		
+		if(spazioRicevuto != null){
+			this.spazio = spazioRicevuto;
+		}
+		
+		hmap.clear();
+		
 		Casella b, isA; //isA è la possibile casella angolo
 		Point posizione = new Point();
 		int h, k;
@@ -149,15 +144,19 @@ public class SettaCaselle {
 			
 		//	System.out.println("b = (" + b.coordinata.x + ", " + b.coordinata.y +")");
 			
-			// prendo in esame tutte le caselle vicine con distanza sqrt(2) da B/b una alla volta per ciclo
-			for(h = -1; h < 2; h = h + 2){
-				for(k = -1; k < 2; k = k + 2){
+			// OCCHIO Se b fosse in hmapCompleta, avrei già controllato le sue possibili caselle d'angolo vicine
+			if(!hmapCompleta.containsKey(b)){
+			
+				// prendo in esame tutte le caselle vicine con distanza sqrt(2) da B/b una alla volta per ciclo
+				for(h = -1; h < 2; h = h + 2){
+					for(k = -1; k < 2; k = k + 2){
 					
-					posizione.x = b.coordinata.x + h;
-					posizione.y = b.coordinata.y + k;
+						posizione.x = b.coordinata.x + h;
+						posizione.y = b.coordinata.y + k;
 					
-					// 1° Controllo: b si trova a distanza sqrt(2) da almeno una casella verde. 
-					if(firstControl(posizione)){
+						// OCCHIO
+						// 1° Controllo: b si trova a distanza sqrt(2) da almeno una casella verde/bianca se ho passateSuccessive TRUE. 
+						if(firstControl(posizione, passateSuccessive, hmapCompleta)){
 							isA = spazio[posizione.x][posizione.y];
 							
 						//	System.out.println("isA= (" + isA.coordinata.x + ", " + isA.coordinata.y + ")");
@@ -167,12 +166,15 @@ public class SettaCaselle {
 								//3° Controllo: isA dista 1 da una terza casella non bianca, la quale dista 1 da B
 								if(thirdControl(isA.coordinata, b.coordinata)){
 									spazio[isA.coordinata.x][isA.coordinata.y].tipologia = Casella.ANGOLO;
+									
+								//	spazio[b.numRiga][b.numColonna].isCovered = true;
 									caselleAngolo.push(spazio[isA.coordinata.x][isA.coordinata.y]);
 									
 									if(!hmap.containsKey(b.coordinata)){
 										caselleAngoloRelative = new ArrayList<>();
 										caselleAngoloRelative.add(isA.coordinata);
 										hmap.put(b.coordinata, caselleAngoloRelative);
+										
 									} else{
 										caselleAngoloRelative = hmap.get(b.coordinata);
 										if(!caselleAngoloRelative.contains(isA.coordinata)){
@@ -182,13 +184,19 @@ public class SettaCaselle {
 										
 									}
 									
+									// aggiunge le coordinate della casella angolo trovata per la corrispondente casella bianca
+									spazio[b.numRiga][b.numColonna].addAngolo(isA.coordinata);
+									
 								}
 							}// Se il 2° controllo fallisce, passo alla prox b
 							
 						} //Se il 1° controllo fallisce, passa alla prox b
-				} // end for interno
-			} // end for esterno
+					} // end for interno
+				} // end for esterno
+			}
 		}
+		
+		return hmap;
 	}
 	
 	public boolean isDistantOne(Point p1, Point p2){
@@ -257,10 +265,23 @@ public class SettaCaselle {
 		return false;
 	}
 	
-	public boolean firstControl(Point isA){
-		// ritorna T se isA è una casella verde
-		if(isInsideSpace(isA) && (spazio[isA.x][isA.y].tipologia.equalsIgnoreCase(Casella.VERDE))){
-			return true;
+	public boolean firstControl(Point isA, boolean passateSuccessive, HashMap<Point, ArrayList<Point>> hmapCompleta){
+		// OCCHIO
+		if(isInsideSpace(isA)){
+			// Se sono alla prima passata, la casella d'angolo (isA) deve essere verde
+			if(!passateSuccessive){
+				if(spazio[isA.x][isA.y].tipologia.equalsIgnoreCase(Casella.VERDE)){
+					return true;
+				} else{
+					return false;
+				}
+			} else{ // Se sono in passate successive, isA deve essere bianca e far parte di hmapCompleta
+				if(spazio[isA.x][isA.y].tipologia.equalsIgnoreCase(Casella.BIANCA) && hmapCompleta.containsKey(isA)){
+					return true;
+				} else{
+					return false;
+				}
+			}
 		} else{
 			return false;
 		}
@@ -331,8 +352,6 @@ public class SettaCaselle {
 	}
 	
 	public void scorriL(){
-		int rowIncr = 0;
-		int colIncr = 0;
 		
 		int i = origine.x - 1;
 		int j = origine.y + 1;
@@ -553,3 +572,4 @@ public class SettaCaselle {
 		}
 	}
 }
+
