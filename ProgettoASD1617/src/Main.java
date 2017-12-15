@@ -8,6 +8,7 @@ import org.jgrapht.graph.SimpleWeightedGraph;
 import MyUtilities.InputDati;
 
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 import java.awt.Point;
 import java.awt.geom.Point2D;
 
@@ -52,10 +53,10 @@ public class Main {
 	//	risgraf.stampaSpazioPM();
 		
 		Rispref rispref = new Rispref(space, new Point(xO, yO));
+		rispref.risolutore();
 		rispref.settaCaselle.stampaSpazioPMP();
-		rispref.controllaHashmapAttuale();
 		rispref.printHashmap();
 	
-				
+		ConcurrentHashMap<Point, ArrayList<Point>> chmap;
 	}
 }

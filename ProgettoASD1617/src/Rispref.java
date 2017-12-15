@@ -5,27 +5,50 @@ import java.util.Map;
 
 public class Rispref {
 	
+	public HashMap<Point, ArrayList<Point>> hmapCompleta;
 	public HashMap<Point, ArrayList<Point>> hmap;
 	public HashMap<Point, ArrayList<Point>> hmapTemp;	//hash temporanea per contenere gli aggiornamenti durante l'esecuzione
 	public Casella[][] spazio;
-	public int numR, numC;
+	public int numR, numC, numCaselleBconPMP;
 	public SettaCaselle settaCaselle;
 	
 	public Rispref(Casella[][] spazio, Point origine){
-		this.settaCaselle = new SettaCaselle(spazio, origine);
-		settaCaselle.risolutore();
-		settaCaselle.stampaSpazioVerdiBianche();
-		settaCaselle.printHMap();
 		
-		this.spazio = settaCaselle.spazio;
-		this.hmap = settaCaselle.hmap;
 		this.numR = spazio.length;
 		this.numC = spazio[0].length;
+		this.numCaselleBconPMP = 0;
+		
+		this.settaCaselle = new SettaCaselle(spazio, origine);		
 	}
 
 	public void risolutore(){
-		controllaHashmapAttuale();
-		avantiDopoCopertura();
+		
+		// Per prima cosa ricerca le caselle verdi/libere sugli assi, sulle diagonali e sulle L e le inserisce in caselleVerdi
+		// oltre a riempire anche la pila di caselleBianche
+		settaCaselle.scorriAssiOrigine();
+		settaCaselle.scorriDiagonali();
+		settaCaselle.scorriL();
+		
+		this.hmapCompleta = new HashMap<Point, ArrayList<Point>>();
+		// cerca le caselle d'angolo che soddisfano le 3 condizioni e le inserisce nella pila caselleAngolo
+		hmap = settaCaselle.caselleAngolo(false, hmapCompleta, null); // passateSuccessive falso, hmap creato da settaCaselle ancora vuoto
+		settaCaselle.settaDefaultPMP();
+		settaCaselle.stampaSpazioVerdiBianche();
+		//settaCaselle.printHMap();
+		
+		this.spazio = settaCaselle.spazio;// devo sovrascrivere spazio in Rispref perchè caselleAngolo aggiunge modifiche
+		
+		while(numCaselleBconPMP < settaCaselle.caselleBianche.size()){
+			
+			// per ogni casella bianca-angolo del mapping, aggiunge caselle bianche coperte da caselle d'angolo in hmap
+			controllaHashmapAttuale(); // utilizza hmap ricevuto da caselleAngolo
+			// assegna la PMP alle caselle bianche che trova dentro hmap
+			avantiDopoCopertura(); // utilizza hmap ricevuto da caselleAngolo
+			
+			//calcola le caselle d'angolo partendo dalle casellebianche
+			this.hmap = settaCaselle.caselleAngolo(true, hmapCompleta, spazio); // OCCHIO
+			this.spazio = settaCaselle.spazio; // devo sovrascrivere spazio in Rispref perchè caselleAngolo aggiunge modifiche
+		}
 	}
 	
 	/*  Ha in input una casella d'angolo e la casella bianca adiacente diagonalmente
@@ -54,7 +77,7 @@ public class Rispref {
 		
 	}
 	
-	// Prende iterativamente tutte le righe della hash, e per tutti i value di una chiave assegna la copertura
+	// Prende iterativamente tutte le righe di hmap, e per tutti i value di una chiave assegna la copertura
 	public void controllaHashmapAttuale() {
 		hmapTemp = new HashMap<Point, ArrayList<Point>>();
 		//hmapTemp = hmap;
@@ -64,12 +87,10 @@ public class Rispref {
 			// Per ogni casella d'angolo adiacente avvio il controllo copertura
 			for(Point a: kv.getValue()) {
 				copertura(a, kv.getKey());
-				
 			}
 		}
 		
 		hmap = copiaHashmap(hmapTemp);	// le modifiche vengono attuate definitivamente nella hash
-		
 	}
 	
 	public void controlloIQuadrante(Point biancaIniziale, Point angoloCorrispondente) {
@@ -227,6 +248,9 @@ public class Rispref {
 				hmapTemp.replace(spazio[i][j].coordinata, caselleAngoloRelative);
 			}
 		}
+		
+		// aggiunge le coordinate della casella angolo trovata per la corrispondente casella bianca
+		spazio[i][j].addAngolo(angoloCorrispondente);
 	}
 	
 	/* Metodo per copiare una hashmap in modo "non shallow"
@@ -261,53 +285,70 @@ public class Rispref {
 		//Rossana
 		Direzione pmp = Direzione.d;
 		ArrayList<Point> caselleAngolo;
-		Point a;
+		Point a, b;
 		int i;
 		boolean daValutare;
 
 		for(Map.Entry<Point, ArrayList<Point>> kv: hmap.entrySet()){
 			
+			b = kv.getKey();
 			caselleAngolo = kv.getValue();
 			pmp = Direzione.d;
 			daValutare = false; // Se  alla fine del metodo è true, sarà da valutare la PMP di B
 			
-			if(caselleAngolo.size() > 1){
+			//OCCHIO se la casella bianca non ha PMP ancora
+			if(spazio[b.x][b.y].primaMossaRispref.name().equalsIgnoreCase(Direzione.d.name())){
 				
-				for(i = 0; i < caselleAngolo.size(); i++){
+			
+				if(caselleAngolo.size() > 1){
+				
+					for(i = 0; i < caselleAngolo.size(); i++){
 					
-					a = caselleAngolo.get(i);
+						a = caselleAngolo.get(i);
 					
-					if(pmp.name().equalsIgnoreCase(Direzione.d.name()) 
+						if(pmp.name().equalsIgnoreCase(Direzione.d.name()) 
 							|| spazio[a.x][a.y].primaMossaRispref.name().equalsIgnoreCase(pmp.name())){
 						
-						pmp = spazio[a.x][a.y].primaMossaRispref;
+							pmp = spazio[a.x][a.y].primaMossaRispref;
 						/*System.out.println("pmp = " + pmp.name() + " di A = " + a.x + ", " + a.y
 						+ " direzione A = " + spazio[a.x][a.y].primaMossaRispref.name());*/
-					} else{
-						// Se scorrendo le caselle angolo di b ne trovo una con PMP diversa dalle altre devo valutare la PMP di b
-						valutaPMP(kv.getKey(), caselleAngolo);
-						// ed interrompo lo scorrimento delle caselle d'angolo
-						i = caselleAngolo.size();
-						daValutare = true;
+						} else{
+							// Se scorrendo le caselle angolo di b ne trovo una con PMP diversa dalle altre devo valutare la PMP di b
+							valutaPMP(kv.getKey(), caselleAngolo);
+							// ed interrompo lo scorrimento delle caselle d'angolo
+							i = caselleAngolo.size();
+							daValutare = true;
+						}
 					}
+				} else {
+					pmp = spazio[caselleAngolo.get(0).x][caselleAngolo.get(0).y].primaMossaRispref;
+					i = 1;
 				}
-			} else {
-				pmp = spazio[caselleAngolo.get(0).x][caselleAngolo.get(0).y].primaMossaRispref;
-				i = 1;
-			}
 			
-			// Se scorrendo tutte le caselle angolo di b arrivo fino qui con daValutare false,
-			// vuol dire che hanno tutte PMP uguale e la assegno a b:
-			if(!daValutare){
-				spazio[kv.getKey().x][kv.getKey().y].primaMossaRispref = pmp;
-				System.out.println(" Ho assegnato pmp = " + pmp.name() + " di b = " + kv.getKey().x + ", " + kv.getKey().y);
+				// Se scorrendo tutte le caselle angolo di b arrivo fino qui con daValutare false,
+				// vuol dire che hanno tutte PMP uguale e la assegno a b:
+				if(!daValutare){
+					spazio[kv.getKey().x][kv.getKey().y].primaMossaRispref = pmp;
+					numCaselleBconPMP++; //OCCHIO
+				
+					System.out.println(" Ho assegnato pmp = " + pmp.name() + " di b = " + kv.getKey().x + ", " + kv.getKey().y);
 				// e poi rimuovo questa riga da hmap, in modo che restino in hmap solo
 				//hmap.remove(kv.getKey(), kv.getValue());
+				}
 			}
 		}
+		appendiHMap();
 	}
 	
 	public void valutaPMP(Point b, ArrayList<Point> caselleAngolo){
+		
+	}
+	
+	public void appendiHMap(){
+		// Appende in hmapCompleta tutto quello che era presente in hmap
+		for(Map.Entry<Point, ArrayList<Point>> kv: hmap.entrySet()){
+			hmapCompleta.put(kv.getKey(), kv.getValue());
+		}
 		
 	}
 }

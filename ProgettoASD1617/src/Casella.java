@@ -19,7 +19,6 @@ public class Casella{
 	public ArrayList<Point> coordinateAngoliAssociati = null; // serve solo alle caselle bianche
 	//public ArrayList<MyUtils.Direzione> direzioniDisponibili;
 	
-
 	public Casella(boolean origine, boolean libera, int numRiga, int numColonna) {
 		this.origine = origine;
 		this.libera = libera;
@@ -29,6 +28,7 @@ public class Casella{
 		
 		this.tipologia = DEFAULT;
 		this.primaMossaRispref = Direzione.d;
+		
 	}
 	
 	public Casella(){
