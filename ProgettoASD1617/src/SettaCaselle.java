@@ -108,7 +108,7 @@ public class SettaCaselle {
 	}
 	
 	public void printHMap(){
-		String print = "";
+		String print = "\nstart mini hmap";
 		
 		for(Map.Entry<Point, ArrayList<Point>> kv: hmap.entrySet()){
 			print = print + "\nChiave B = (" + kv.getKey().x + ", " + kv.getKey().y + ")"
@@ -119,6 +119,8 @@ public class SettaCaselle {
 			
 			print = print + " ]";
 		}
+		
+		print = print + "\nend mini hmap\n\n";
 		
 		System.out.println(print);
 	}
@@ -131,9 +133,12 @@ public class SettaCaselle {
 		}
 		
 		hmap.clear();
+	//	System.out.println("HMAP SIZE = " + hmap.size());
+	//	printHMap();
 		
 		Casella b, isA; //isA è la possibile casella angolo
 		Point posizione = new Point();
+		Point isO;
 		int h, k;
 		
 		ArrayList<Point> caselleAngoloRelative;
@@ -142,10 +147,10 @@ public class SettaCaselle {
 		for(int i = 0; i < caselleBianche.size(); i++){
 			b = caselleBianche.get(i);
 			
-		//	System.out.println("b = (" + b.coordinata.x + ", " + b.coordinata.y +")");
+			System.out.println("b = (" + b.coordinata.x + ", " + b.coordinata.y +")");
 			
 			// OCCHIO Se b fosse in hmapCompleta, avrei già controllato le sue possibili caselle d'angolo vicine
-			if(!hmapCompleta.containsKey(b)){
+			if(!hmapCompleta.containsKey(b.coordinata)){
 			
 				// prendo in esame tutte le caselle vicine con distanza sqrt(2) da B/b una alla volta per ciclo
 				for(h = -1; h < 2; h = h + 2){
@@ -154,17 +159,19 @@ public class SettaCaselle {
 						posizione.x = b.coordinata.x + h;
 						posizione.y = b.coordinata.y + k;
 					
-						// OCCHIO
+						System.out.println("posizione = " + posizione.x + " , " + posizione.y);
+						
 						// 1° Controllo: b si trova a distanza sqrt(2) da almeno una casella verde/bianca se ho passateSuccessive TRUE. 
 						if(firstControl(posizione, passateSuccessive, hmapCompleta)){
 							isA = spazio[posizione.x][posizione.y];
 							
 						//	System.out.println("isA= (" + isA.coordinata.x + ", " + isA.coordinata.y + ")");
 							// 2° Controllo: isA dista 1 da una casella ostacolo, la quale dista 1 da B
-							if(secondControl(isA.coordinata, b.coordinata)){
+							isO = secondControl(isA.coordinata, b.coordinata);
+							if(isO != null){
 								
 								//3° Controllo: isA dista 1 da una terza casella non bianca, la quale dista 1 da B
-								if(thirdControl(isA.coordinata, b.coordinata)){
+								if(thirdControl(isA.coordinata, b.coordinata, isO)){
 									spazio[isA.coordinata.x][isA.coordinata.y].tipologia = Casella.ANGOLO;
 									
 								//	spazio[b.numRiga][b.numColonna].isCovered = true;
@@ -177,15 +184,17 @@ public class SettaCaselle {
 										
 									} else{
 										caselleAngoloRelative = hmap.get(b.coordinata);
-										if(!caselleAngoloRelative.contains(isA.coordinata)){
+									//	if(!caselleAngoloRelative.contains(isA.coordinata)){
 											caselleAngoloRelative.add(isA.coordinata);
 											hmap.replace(b.coordinata, caselleAngoloRelative);
-										}
+									//	}
 										
 									}
 									
+									
 									// aggiunge le coordinate della casella angolo trovata per la corrispondente casella bianca
 									spazio[b.numRiga][b.numColonna].addAngolo(isA.coordinata);
+									System.out.println("NUOVO ANGOLO: " + isA.toString());
 									
 								}
 							}// Se il 2° controllo fallisce, passo alla prox b
@@ -208,23 +217,26 @@ public class SettaCaselle {
 		}
 	}
 	
-	public boolean thirdInsideControl(Point temp, Point b){
-		if(isInsideSpace(temp) && !spazio[temp.x][temp.y].tipologia.equalsIgnoreCase(Casella.BIANCA) && isDistantOne(temp, b)){
+	public boolean thirdInsideControl(Point temp, Point b, Point o){
+		// Aggiunta la condizione per cui la terza casella temp non debba essere l'ostacolo del secondo controllo
+		if(isInsideSpace(temp) && !spazio[temp.x][temp.y].tipologia.equalsIgnoreCase(Casella.BIANCA) 
+				&& isDistantOne(temp, b) /*&& !(temp.x == o.x && temp.y == o.y)*/){
 		//	System.out.println("terza = (" + temp.x + ", " + temp.y + ")");
+		//	System.out.println("TERZO CONTROLLO CON SUCCESSO");
 			return true;
 		} else{
 			return false;
 		}
 	}
 	
-	public boolean thirdControl(Point isA, Point b){
+	public boolean thirdControl(Point isA, Point b, Point o){
 		// ritorna T se c'è una casella non bianca (VERDE) che dista 1 da isA, la quale dista 1 da B
 		Point temp = new Point();
 		
 		temp.x = isA.x + 1;
 		temp.y = isA.y;
 		
-		if(thirdInsideControl(temp, b)){
+		if(thirdInsideControl(temp, b, o)){
 			return true;
 		}
 	/*	if(isInsideSpace(temp) && spazio[temp.x][temp.y].tipologia.equalsIgnoreCase(Casella.VERDE) && isDistantOne(temp, b)){
@@ -234,7 +246,7 @@ public class SettaCaselle {
 		
 		temp.x = isA.x - 1;
 		temp.y = isA.y;
-		if(thirdInsideControl(temp, b)){
+		if(thirdInsideControl(temp, b, o)){
 			return true;
 		}
 	/*	if(isInsideSpace(temp) && spazio[temp.x][temp.y].tipologia.equalsIgnoreCase(Casella.VERDE) && isDistantOne(temp, b)){
@@ -244,7 +256,7 @@ public class SettaCaselle {
 		
 		temp.x = isA.x;
 		temp.y = isA.y + 1;
-		if(thirdInsideControl(temp, b)){
+		if(thirdInsideControl(temp, b, o)){
 			return true;
 		}
 	/*	if(isInsideSpace(temp) && spazio[temp.x][temp.y].tipologia.equalsIgnoreCase(Casella.VERDE) && isDistantOne(temp, b)){
@@ -254,7 +266,7 @@ public class SettaCaselle {
 		
 		temp.x = isA.x;
 		temp.y = isA.y - 1;
-		if(thirdInsideControl(temp, b)){
+		if(thirdInsideControl(temp, b, o)){
 			return true;
 		}
 	/*	if(isInsideSpace(temp) && spazio[temp.x][temp.y].tipologia.equalsIgnoreCase(Casella.VERDE) && isDistantOne(temp, b)){
@@ -270,13 +282,18 @@ public class SettaCaselle {
 		if(isInsideSpace(isA)){
 			// Se sono alla prima passata, la casella d'angolo (isA) deve essere verde
 			if(!passateSuccessive){
-				if(spazio[isA.x][isA.y].tipologia.equalsIgnoreCase(Casella.VERDE)){
+				if(spazio[isA.x][isA.y].tipologia.equalsIgnoreCase(Casella.VERDE) 
+						|| spazio[isA.x][isA.y].tipologia.equalsIgnoreCase(Casella.ANGOLO)){
+			//		System.out.println("PRIMO CONTROLLO CON SUCCESSO");
 					return true;
 				} else{
 					return false;
 				}
 			} else{ // Se sono in passate successive, isA deve essere bianca e far parte di hmapCompleta
-				if(spazio[isA.x][isA.y].tipologia.equalsIgnoreCase(Casella.BIANCA) && hmapCompleta.containsKey(isA)){
+				if((spazio[isA.x][isA.y].tipologia.equalsIgnoreCase(Casella.BIANCA) 
+						|| spazio[isA.x][isA.y].tipologia.equalsIgnoreCase(Casella.ANGOLO))
+						&& hmapCompleta.containsKey(isA)){
+				//	System.out.println("PRIMO CONTROLLO CON SUCCESSO");
 					return true;
 				} else{
 					return false;
@@ -290,20 +307,21 @@ public class SettaCaselle {
 	public boolean secondInsideControl(Point temp, Point b){
 		if(isInsideSpace(temp) && !spazio[temp.x][temp.y].libera && isDistantOne(temp, b)){
 		//	System.out.println("ostacolo = (" + temp.x + ", " + temp.y + ")");
+		//	System.out.println("SECONDO CONTROLLO CON SUCCESSO");
 			return true;
 		} else{
 			return false;
 		}
 	}
 	
-	public boolean secondControl(Point isA, Point b){ 
+	public Point secondControl(Point isA, Point b){ 
 		// ritorna T se c'è una casella vicina ad isA con distanza 1, che è un ostacolo e che dista 1 da b
 		Point temp = new Point();
 		
 		temp.x = isA.x + 1;
 		temp.y = isA.y;
 		if(secondInsideControl(temp, b)){
-			return true;
+			return temp;
 		}
 	/*	if(isInsideSpace(temp) && !spazio[temp.x][temp.y].libera && isDistantOne(temp, b)){
 			System.out.println("ostacolo = (" + temp.x + ", " + temp.y + ")");
@@ -313,7 +331,7 @@ public class SettaCaselle {
 		temp.x = isA.x - 1;
 		temp.y = isA.y;
 		if(secondInsideControl(temp, b)){
-			return true;
+			return temp;
 		}
 	/*	if(isInsideSpace(temp) && !spazio[temp.x][temp.y].libera && isDistantOne(temp, b)){
 			System.out.println("ostacolo = (" + temp.x + ", " + temp.y + ")");
@@ -323,7 +341,7 @@ public class SettaCaselle {
 		temp.x = isA.x;
 		temp.y = isA.y + 1;
 		if(secondInsideControl(temp, b)){
-			return true;
+			return temp;
 		}
 	/*	if(isInsideSpace(temp) && !spazio[temp.x][temp.y].libera && isDistantOne(temp, b)){
 			System.out.println("ostacolo = (" + temp.x + ", " + temp.y + ")");
@@ -333,14 +351,14 @@ public class SettaCaselle {
 		temp.x = isA.x;
 		temp.y = isA.y - 1;
 		if(secondInsideControl(temp, b)){
-			return true;
+			return temp;
 		}
 	/*	if(isInsideSpace(temp) && !spazio[temp.x][temp.y].libera && isDistantOne(temp, b)){
 			System.out.println("ostacolo = (" + temp.x + ", " + temp.y + ")");
 			return true;
 		}*/
 		
-		return false;
+		return null;
 	}
 	
 	public boolean isInsideSpace(Point p){

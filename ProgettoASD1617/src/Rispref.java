@@ -20,7 +20,9 @@ public class Rispref {
 		this.numC = spazio[0].length;
 		this.numCaselleBconPMP = 0;
 		
-		this.settaCaselle = new SettaCaselle(spazio, origine);		
+		this.settaCaselle = new SettaCaselle(spazio, origine);
+		
+		this.hmap = null;
 	}
 
 	public void risolutore(){
@@ -32,26 +34,31 @@ public class Rispref {
 		settaCaselle.scorriL();
 		
 		this.hmapCompleta = new HashMap<Point, ArrayList<Point>>();
+		
 		// cerca le caselle d'angolo che soddisfano le 3 condizioni e le inserisce nella pila caselleAngolo
 		hmap = settaCaselle.caselleAngolo(false, hmapCompleta, null); // passateSuccessive falso, hmap creato da settaCaselle ancora vuoto
 		settaCaselle.settaDefaultPMP();
 		settaCaselle.settaDefaultDlib();
 		settaCaselle.stampaSpazioVerdiBianche();
-		//settaCaselle.printHMap();
-		
+			
 		this.spazio = settaCaselle.spazio;// devo sovrascrivere spazio in Rispref perchè caselleAngolo aggiunge modifiche
+		
+		settaCaselle.printHMap();
 		
 		while(numCaselleBconPMP < settaCaselle.caselleBianche.size()){
 			
 			// per ogni casella bianca-angolo del mapping, aggiunge caselle bianche coperte da caselle d'angolo in hmap
 			controllaHashmapAttuale(); // utilizza hmap ricevuto da caselleAngolo
 			// assegna la PMP alle caselle bianche che trova dentro hmap
-			avantiDopoCopertura(); // utilizza hmap ricevuto da caselleAngolo
+		//	avantiDopoCopertura(); // utilizza hmap ricevuto da caselleAngolo e poi aggiorna hmapCompleta
+			avantiDopoCopertura_V2();
+			
 			
 			//calcola le caselle d'angolo partendo dalle casellebianche
-			this.hmap = settaCaselle.caselleAngolo(true, hmapCompleta, spazio); // OCCHIO
+			this.hmap = settaCaselle.caselleAngolo(true, hmapCompleta, this.spazio);
 			this.spazio = settaCaselle.spazio; // devo sovrascrivere spazio in Rispref perchè caselleAngolo aggiunge modifiche
 		}
+		printHashmap();
 	}
 	
 	/*  Ha in input una casella d'angolo e la casella bianca adiacente diagonalmente
@@ -101,7 +108,8 @@ public class Rispref {
 		int j = biancaIniziale.y;
 		
 		//controllo diagonale
-		while(i > -1 && j < numC && spazio[i][j].libera){ 
+		while(i > -1 && j < numC && (spazio[i][j].tipologia.equalsIgnoreCase(Casella.BIANCA) /*||
+				spazio[i][j].tipologia.equalsIgnoreCase(Casella.ANGOLO) */)){ 
 			// diagonale NE
 			
 			aggiornaHash(i, j, angoloCorrispondente);
@@ -115,7 +123,8 @@ public class Rispref {
 		j = biancaIniziale.y;
 		
 		//controllo L
-		while(i > - 1 && j < numC && spazio[i][j].libera){ //quadrante NE
+		while(i > - 1 && j < numC && (spazio[i][j].tipologia.equalsIgnoreCase(Casella.BIANCA)/*||
+				spazio[i][j].tipologia.equalsIgnoreCase(Casella.ANGOLO) */)){ //quadrante NE
 			controllaEst(i, j, angoloCorrispondente);
 			controllaNord(i - 1, j, angoloCorrispondente);
 			i--;
@@ -129,7 +138,8 @@ public class Rispref {
 		int j = biancaIniziale.y;
 		
 		//controllo diagonale
-		while(i > -1 && j > -1 && spazio[i][j].libera){ 
+		while(i > -1 && j > -1 && (spazio[i][j].tipologia.equalsIgnoreCase(Casella.BIANCA)/*||
+				spazio[i][j].tipologia.equalsIgnoreCase(Casella.ANGOLO) */)){ 
 			// diagonale NW
 			
 			aggiornaHash(i, j, angoloCorrispondente);
@@ -143,7 +153,8 @@ public class Rispref {
 		j = biancaIniziale.y;
 		
 		//controllo L
-		while(i > -1 && j > -1 && spazio[i][j].libera){
+		while(i > -1 && j > -1 && (spazio[i][j].tipologia.equalsIgnoreCase(Casella.BIANCA)/*||
+				spazio[i][j].tipologia.equalsIgnoreCase(Casella.ANGOLO) */)){
 			controllaOvest(i, j, angoloCorrispondente);
 			controllaNord(i - 1, j, angoloCorrispondente);
 			i--;
@@ -157,7 +168,8 @@ public class Rispref {
 		int j = biancaIniziale.y;
 		
 		//controllo diagonale
-		while(i < numR && j > -1 && spazio[i][j].libera){ 
+		while(i < numR && j > -1 && (spazio[i][j].tipologia.equalsIgnoreCase(Casella.BIANCA)/*||
+				spazio[i][j].tipologia.equalsIgnoreCase(Casella.ANGOLO) */)){ 
 			// diagonale NW
 			
 			aggiornaHash(i, j, angoloCorrispondente);
@@ -171,7 +183,8 @@ public class Rispref {
 		j = biancaIniziale.y;
 		
 		//controllo L
-		while(i < numR && j > -1 && spazio[i][j].libera){
+		while(i < numR && j > -1 && (spazio[i][j].tipologia.equalsIgnoreCase(Casella.BIANCA)/*||
+				spazio[i][j].tipologia.equalsIgnoreCase(Casella.ANGOLO) */)){
 			controllaOvest(i, j, angoloCorrispondente);
 			controllaSud(i + 1, j, angoloCorrispondente);
 			i++;
@@ -184,7 +197,8 @@ public class Rispref {
 		int j = biancaIniziale.y;
 		
 		//controllo diagonale
-		while(i < numR && j < numC && spazio[i][j].libera){ 
+		while(i < numR && j < numC && (spazio[i][j].tipologia.equalsIgnoreCase(Casella.BIANCA)/*||
+				spazio[i][j].tipologia.equalsIgnoreCase(Casella.ANGOLO) */)){ 
 			// diagonale NW
 			
 			aggiornaHash(i, j, angoloCorrispondente);
@@ -198,7 +212,8 @@ public class Rispref {
 		j = biancaIniziale.y;
 		
 		//controllo L
-		while(i < numR && j < numC && spazio[i][j].libera){
+		while(i < numR && j < numC && (spazio[i][j].tipologia.equalsIgnoreCase(Casella.BIANCA) /*||
+				spazio[i][j].tipologia.equalsIgnoreCase(Casella.ANGOLO) */)){
 			controllaEst(i, j, angoloCorrispondente);
 			controllaSud(i + 1, j, angoloCorrispondente);
 			i++;
@@ -207,7 +222,8 @@ public class Rispref {
 	}
 	
 	public void controllaSud(int startRow, int startCol, Point angoloCorrispondente){ 
-		while(startRow < numR && spazio[startRow][startCol].libera){ // asse sud
+		while(startRow < numR && (spazio[startRow][startCol].tipologia.equalsIgnoreCase(Casella.BIANCA) /*||
+				spazio[i][j].tipologia.equalsIgnoreCase(Casella.ANGOLO) */)){ // asse sud
 			aggiornaHash(startRow, startCol, angoloCorrispondente);
 			startRow++;
 		}
@@ -215,7 +231,8 @@ public class Rispref {
 	}
 	
 	public void controllaNord(int startRow, int startCol, Point angoloCorrispondente){
-		while(startRow > -1 && spazio[startRow][startCol].libera){ // asse nord
+		while(startRow > -1 && (spazio[startRow][startCol].tipologia.equalsIgnoreCase(Casella.BIANCA) /*||
+				spazio[i][j].tipologia.equalsIgnoreCase(Casella.ANGOLO) */)){ // asse nord
 			aggiornaHash(startRow, startCol, angoloCorrispondente);
 			startRow--;
 		}
@@ -223,7 +240,8 @@ public class Rispref {
 	}
 	
 	public void controllaEst(int startRow, int startCol, Point angoloCorrispondente){
-		while(startCol < numC && spazio[startRow][startCol].libera){ // asse est
+		while(startCol < numC && (spazio[startRow][startCol].tipologia.equalsIgnoreCase(Casella.BIANCA) /*||
+				spazio[i][j].tipologia.equalsIgnoreCase(Casella.ANGOLO) */)){ // asse est
 			aggiornaHash(startRow, startCol, angoloCorrispondente);
 			startCol++;
 		}
@@ -231,7 +249,8 @@ public class Rispref {
 	}
 	
 	public void controllaOvest(int startRow, int startCol, Point angoloCorrispondente){
-		while(startCol > -1 && spazio[startRow][startCol].libera){ // asse ovest
+		while(startCol > -1 && (spazio[startRow][startCol].tipologia.equalsIgnoreCase(Casella.BIANCA) /*||
+				spazio[i][j].tipologia.equalsIgnoreCase(Casella.ANGOLO) */)){ // asse ovest
 			aggiornaHash(startRow, startCol, angoloCorrispondente);
 			startCol--;
 		}
@@ -244,13 +263,20 @@ public class Rispref {
 			ArrayList<Point> caselleAngoloRelative = new ArrayList<>();
 			caselleAngoloRelative.add(angoloCorrispondente);
 			hmapTemp.put(spazio[i][j].coordinata, caselleAngoloRelative);
+			
+		//	System.out.println("L'ANGOLO [" + angoloCorrispondente.x + ", " + angoloCorrispondente.y + "] copre B = [" + i + ", " + j + "]");
+
 		}else {
 			ArrayList<Point> caselleAngoloRelative = hmapTemp.get(spazio[i][j].coordinata);
 			if(!caselleAngoloRelative.contains(angoloCorrispondente)){
 				caselleAngoloRelative.add(angoloCorrispondente);
 				hmapTemp.replace(spazio[i][j].coordinata, caselleAngoloRelative);
+
+		//		System.out.println("L'ANGOLO [" + angoloCorrispondente.x + ", " + angoloCorrispondente.y + "] copre B = [" + i + ", " + j + "]");
+
 			}
 		}
+		
 		
 		// aggiunge le coordinate della casella angolo trovata per la corrispondente casella bianca
 		spazio[i][j].addAngolo(angoloCorrispondente);
@@ -269,10 +295,10 @@ public class Rispref {
 	}
 	
 	public void printHashmap(){
-		String print = "";
+		String print = "\n\nTHIS IS COMPLETE HASH MAP\n";
 		
-		for(Map.Entry<Point, ArrayList<Point>> kv: hmap.entrySet()){
-			print = print + "\nChiave B = (" + kv.getKey().x + ", " + kv.getKey().y + ")"
+		for(Map.Entry<Point, ArrayList<Point>> kv: hmapCompleta.entrySet()){
+			print = print + "\nCOMPLETA Chiave B = (" + kv.getKey().x + ", " + kv.getKey().y + ")"
 					+ " Lista Valori = [ ";
 			for(Point a: kv.getValue()){
 				print = print + "(" + a.x + ", " + a.y + "), ";
@@ -334,7 +360,7 @@ public class Rispref {
 					spazio[kv.getKey().x][kv.getKey().y].primaMossaRispref = pmp;
 					numCaselleBconPMP++; //OCCHIO
 				
-					System.out.println(" Ho assegnato pmp = " + pmp.name() + " di b = " + kv.getKey().x + ", " + kv.getKey().y);
+				//	System.out.println(" Ho assegnato pmp = " + pmp.name() + " di b = " + kv.getKey().x + ", " + kv.getKey().y);
 				// e poi rimuovo questa riga da hmap, in modo che restino in hmap solo
 				//hmap.remove(kv.getKey(), kv.getValue());
 				}
@@ -351,26 +377,32 @@ public class Rispref {
 			
 			valutaPMPeDlib(kv.getKey(), caselleAngolo);
 		}
+		
+		appendiHMap();
 	}
 	
 	
 	// Calcola la dlib minima tra la casella bianca e tutte le sue angolo, poi assegna essa e la PMP dell'angolo corrispondente alla bianca
 	public void valutaPMPeDlib(Point b, ArrayList<Point> caselleAngolo){
-		double dlibMin = 9999;
+		double dlibMin = 999999999;
 		int indexAngoloMin = 0;
 		
-		for(int i = 0; i < caselleAngolo.size(); i++) {
-			double dlibTemp = MyFormulas.dlibComputation(caselleAngolo.get(i), b);
-			if(dlibTemp < dlibMin) {
-				dlibMin = dlibTemp;
-				indexAngoloMin = i;
-			}
-		}
+		if(spazio[b.x][b.y].primaMossaRispref.name().equalsIgnoreCase(Direzione.d.name())){
 		
-		// assegno PMP e dlib alla casella bianca
-		spazio[b.x][b.y].primaMossaRispref = spazio[caselleAngolo.get(indexAngoloMin).x][caselleAngolo.get(indexAngoloMin).y].primaMossaRispref;
-		spazio[b.x][b.y].pesoCAMRispref = spazio[caselleAngolo.get(indexAngoloMin).x][caselleAngolo.get(indexAngoloMin).y].pesoCAMRispref + dlibMin;
-		numCaselleBconPMP++;
+			for(int i = 0; i < caselleAngolo.size(); i++) {
+				double dlibTemp = MyFormulas.dlibComputation(caselleAngolo.get(i), b);
+				if(dlibTemp < dlibMin) {
+					dlibMin = dlibTemp;
+					indexAngoloMin = i;
+				}
+			}
+		
+			// assegno PMP e dlib alla casella bianca
+			spazio[b.x][b.y].primaMossaRispref = spazio[caselleAngolo.get(indexAngoloMin).x][caselleAngolo.get(indexAngoloMin).y].primaMossaRispref;
+			spazio[b.x][b.y].pesoCAMRispref = spazio[caselleAngolo.get(indexAngoloMin).x][caselleAngolo.get(indexAngoloMin).y].pesoCAMRispref + dlibMin;
+			numCaselleBconPMP++;
+			System.out.println(numCaselleBconPMP);
+		}
 		
 	}
 	
