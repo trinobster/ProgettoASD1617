@@ -27,10 +27,10 @@ public class Main {
 	
 	// Questi saranno gli input dell'utente
 	public static int numR = 10;
-	public static int numC = 5;
-	public static final int xO = 2;
-	public static final int yO = 2;
-	public static final double percentualeOstacoliVoluta = 0.3;
+	public static int numC = 10;
+	public static final int xO = 5;
+	public static final int yO = 5;
+	public static final double percentualeOstacoliVoluta = 0.4;
 	
 	public static void main(String[] args) {
 		
@@ -55,8 +55,8 @@ public class Main {
 		
 		Rispref rispref = new Rispref(space, new Point(xO, yO));
 		rispref.risolutore();
-		rispref.settaCaselle.stampaSpazioPMP();
-		rispref.printHashmap();
+	//	rispref.settaCaselle.stampaSpazioPMP();
+	//	rispref.printHashmap();
 		rispref.stampaSpazioPM();
 		rispref.stampaSpazioDlib();
 	
