@@ -34,15 +34,16 @@ public class Rispref {
 		settaCaselle.scorriL();
 		
 		this.hmapCompleta = new HashMap<Point, ArrayList<Point>>();
+		
 		// cerca le caselle d'angolo che soddisfano le 3 condizioni e le inserisce nella pila caselleAngolo
 		hmap = settaCaselle.caselleAngolo(false, hmapCompleta, null); // passateSuccessive falso, hmap creato da settaCaselle ancora vuoto
 		settaCaselle.settaDefaultPMP();
 		settaCaselle.settaDefaultDlib();
 		settaCaselle.stampaSpazioVerdiBianche();
-		//settaCaselle.printHMap();
-		
+			
 		this.spazio = settaCaselle.spazio;// devo sovrascrivere spazio in Rispref perchè caselleAngolo aggiunge modifiche
-		
+
+		settaCaselle.printHMap();
 
 		while(numCaselleBconPMP < settaCaselle.caselleBianche.size()){
 			
@@ -262,13 +263,20 @@ public class Rispref {
 			ArrayList<Point> caselleAngoloRelative = new ArrayList<>();
 			caselleAngoloRelative.add(angoloCorrispondente);
 			hmapTemp.put(spazio[i][j].coordinata, caselleAngoloRelative);
+			
+		//	System.out.println("L'ANGOLO [" + angoloCorrispondente.x + ", " + angoloCorrispondente.y + "] copre B = [" + i + ", " + j + "]");
+
 		}else {
 			ArrayList<Point> caselleAngoloRelative = hmapTemp.get(spazio[i][j].coordinata);
 			if(!caselleAngoloRelative.contains(angoloCorrispondente)){
 				caselleAngoloRelative.add(angoloCorrispondente);
 				hmapTemp.replace(spazio[i][j].coordinata, caselleAngoloRelative);
+
+		//		System.out.println("L'ANGOLO [" + angoloCorrispondente.x + ", " + angoloCorrispondente.y + "] copre B = [" + i + ", " + j + "]");
+
 			}
 		}
+		
 		
 		// aggiunge le coordinate della casella angolo trovata per la corrispondente casella bianca
 		spazio[i][j].addAngolo(angoloCorrispondente);	//FAGIOLO?
