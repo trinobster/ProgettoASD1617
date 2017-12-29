@@ -25,18 +25,20 @@ public class Main {
 	public static ArrayList<Point2D> liberateAtt = new ArrayList<Point2D>();
 	public static ArrayList<Point2D> liberateGlob = new ArrayList<Point2D>();
 	
-	// Questi saranno gli input dell'utente
-	public static int numR = 100;
-	public static int numC = 100;
-	public static final int xO = 40;
-	public static final int yO = 40;
-	public static final double percentualeOstacoliVoluta = 0.4;
+	public static int numR; //= 100;
+	public static int numC; //= 100;
+	public static int xO; // = 24;
+	public static int yO; //= 24;
+	public static double percentualeOstacoliVoluta; //= 0;
 	
 	public static void main(String[] args) {
 		
-	/**	0. Questo è per quando l'utente inserirà da console i parametri	
-	 * numR = InputDati.leggiIntero(MSG_INSRT_MAX_R);
-		numC = InputDati.leggiIntero(MSG_INSRT_MAX_C);*/
+		
+		numR = InputDati.leggiIntero(MSG_INSRT_MAX_R);
+		numC = InputDati.leggiIntero(MSG_INSRT_MAX_C);
+		xO = InputDati.leggiIntero(MSG_INSRT_X_ORIGIN);
+		yO = InputDati.leggiIntero(MSG_INSRT_Y_ORIGIN);
+		percentualeOstacoliVoluta = InputDati.leggiDouble(MSG_INSRT_PERC_OSTACOLI);
 		
 		// 1. Creazione dello spazio
 		MySpace mySpace = new MySpace(xO, yO, numR, numC, percentualeOstacoliVoluta);
@@ -57,12 +59,16 @@ public class Main {
 		rispref.risolutore();
 	//	rispref.settaCaselle.stampaSpazioPMP();
 	//	rispref.printHashmap();
+				
 		rispref.stampaSpazioPM();
 		rispref.stampaSpazioDlib();
 		
-		System.exit(0);
-	
-		//ConcurrentHashMap<Point, ArrayList<Point>> chmap;
+		Sperimentazione sperimentazione = new Sperimentazione(rispref.spazio);
+		sperimentazione.stampaDifferenzeCAM();
+		sperimentazione.stampaDifferenzePM();
+		
+		System.exit(0);	
+
 	}
 }
 

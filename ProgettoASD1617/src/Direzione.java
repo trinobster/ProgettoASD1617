@@ -34,6 +34,31 @@ public enum Direzione {
 		return dirY;
 	}
 	
+	public static Direzione fromAtob(Point angolo, Point bianca){
+	//indica le direzioni del quadrante da esaminare: dalla casella Angolo alla casella bianca
+	// c è la differenza tra: A - b
+	// in base al risultato distinguo NW, NE, SW, SE
+	
+		Point c = new Point();
+		c.x = angolo.x - bianca.x;
+		c.y = angolo.y - bianca.y;
+
+		
+		if(c.x == 1 && c.y == -1){
+			return NE;
+		} else if(c.x == 1 && c.y == 1){
+			return NW;
+		} else if(c.x == -1 && c.y == -1){
+			return SE;
+		} else if(c.x == -1 && c.y == 1){
+			return SW;
+		} else{
+			System.out.println("\n!!!ERRORE!!! vedi enum Direzione ritorna null getCurrespodentMossa() " + c.x + " " + c.y +
+					"angolo = " + angolo + " bianca = " + bianca);
+			return null;
+		}
+	}
+	
 	public static Direzione getCurrespondentDirezione(Point c1, Point c2){
 		
 		Point c = new Point();
@@ -58,7 +83,8 @@ public enum Direzione {
 		} else if(c.x == 1 && c.y == 1){
 			return SE;
 		} else{
-			System.out.println("\n!!!ERRORE!!! vedi enum Direzione ritorna null getCurrespodentMossa() " + c.x + " " + c.y);
+			System.out.println("\n!!!ERRORE!!! vedi enum Direzione ritorna null getCurrespodentMossa() " + c.x + " " + c.y +
+					"c2 = " + c2 + " c1 = " + c1);
 			return null;
 		}
 	}
