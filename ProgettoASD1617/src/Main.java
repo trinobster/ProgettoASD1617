@@ -26,10 +26,10 @@ public class Main {
 	public static ArrayList<Point2D> liberateGlob = new ArrayList<Point2D>();
 	
 	// Questi saranno gli input dell'utente
-	public static int numR = 10;
-	public static int numC = 10;
-	public static final int xO = 5;
-	public static final int yO = 5;
+	public static int numR = 100;
+	public static int numC = 100;
+	public static final int xO = 40;
+	public static final int yO = 40;
 	public static final double percentualeOstacoliVoluta = 0.4;
 	
 	public static void main(String[] args) {
@@ -59,8 +59,10 @@ public class Main {
 	//	rispref.printHashmap();
 		rispref.stampaSpazioPM();
 		rispref.stampaSpazioDlib();
+		
+		System.exit(0);
 	
-		ConcurrentHashMap<Point, ArrayList<Point>> chmap;
+		//ConcurrentHashMap<Point, ArrayList<Point>> chmap;
 	}
 }
 

@@ -57,6 +57,9 @@ public class Rispref {
 			//calcola le caselle d'angolo partendo dalle casellebianche
 			this.hmap = settaCaselle.caselleAngolo(true, hmapCompleta, this.spazio);
 			this.spazio = settaCaselle.spazio; // devo sovrascrivere spazio in Rispref perchè caselleAngolo aggiunge modifiche
+			stampaSpazioPM();
+			stampaSpazioDlib();
+			printHashmap();
 		}
 		printHashmap();
 	}

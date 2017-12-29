@@ -220,7 +220,7 @@ public class SettaCaselle {
 	public boolean thirdInsideControl(Point temp, Point b, Point o){
 		// Aggiunta la condizione per cui la terza casella temp non debba essere l'ostacolo del secondo controllo
 		if(isInsideSpace(temp) && !spazio[temp.x][temp.y].tipologia.equalsIgnoreCase(Casella.BIANCA) 
-				&& isDistantOne(temp, b) /*&& !(temp.x == o.x && temp.y == o.y)*/){
+				/*&& isDistantOne(temp, b) && !(temp.x == o.x && temp.y == o.y)*/){
 		//	System.out.println("terza = (" + temp.x + ", " + temp.y + ")");
 		//	System.out.println("TERZO CONTROLLO CON SUCCESSO");
 			return true;
