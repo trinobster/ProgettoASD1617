@@ -3,9 +3,13 @@ import java.awt.Point;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Stack;
+
 import MyUtilities.*;
 
 public class Rispref {
+	
+	public static final double MAX_PESO_CAMP = Double.MAX_VALUE; //(1,7 * 10^308)
 	
 	public HashMap<Point, ArrayList<Point>> hmapCompleta;
 	public HashMap<Point, ArrayList<Point>> hmap;
@@ -13,6 +17,8 @@ public class Rispref {
 	public Casella[][] spazio;
 	public int numR, numC, numCaselleBconPMP;
 	public SettaCaselle settaCaselle;
+	
+	Stack<Point> biancheCoperte;
 	
 	public Rispref(Casella[][] spazio, Point origine){
 		
@@ -23,6 +29,8 @@ public class Rispref {
 		this.settaCaselle = new SettaCaselle(spazio, origine);
 		
 		this.hmap = null;
+		
+		
 	}
 
 	public void risolutore(){
@@ -33,10 +41,11 @@ public class Rispref {
 		settaCaselle.scorriDiagonali();
 		settaCaselle.scorriL();
 		
-		this.hmapCompleta = new HashMap<Point, ArrayList<Point>>();
+		this.hmapCompleta = new HashMap<Point, ArrayList<Point>>(settaCaselle.caselleBianche.size(), 1.0f);
 		
 		// cerca le caselle d'angolo che soddisfano le 3 condizioni e le inserisce nella pila caselleAngolo
 		hmap = settaCaselle.caselleAngolo(false, hmapCompleta, null); // passateSuccessive falso, hmap creato da settaCaselle ancora vuoto
+		
 		settaCaselle.settaDefaultPMP();
 		settaCaselle.settaDefaultDlib();
 		settaCaselle.stampaSpazioVerdiBianche();
@@ -45,241 +54,419 @@ public class Rispref {
 		
 		settaCaselle.printHMap();
 		
+		
 		while(numCaselleBconPMP < settaCaselle.caselleBianche.size()){
 			
 			// per ogni casella bianca-angolo del mapping, aggiunge caselle bianche coperte da caselle d'angolo in hmap
-			controllaHashmapAttuale(); // utilizza hmap ricevuto da caselleAngolo
-			// assegna la PMP alle caselle bianche che trova dentro hmap
-		//	avantiDopoCopertura(); // utilizza hmap ricevuto da caselleAngolo e poi aggiorna hmapCompleta
-			avantiDopoCopertura_V2();
+			controllaHashmapAttuale_V2();
+			//printhmap();
+			//printhmapCompleta();
 			
+			settaCaselle.stampaSpazioVerdiBianche(); // utilizza hmap ricevuto da caselleAngolo
+			// assegna la PMP alle caselle bianche che trova dentro hmap
+			// utilizza hmap ricevuto da caselleAngolo e poi aggiorna hmapCompleta
+			avantiDopoCopertura_V2();
 			
 			//calcola le caselle d'angolo partendo dalle casellebianche
 			this.hmap = settaCaselle.caselleAngolo(true, hmapCompleta, this.spazio);
 			this.spazio = settaCaselle.spazio; // devo sovrascrivere spazio in Rispref perchè caselleAngolo aggiunge modifiche
+			
 		}
-		printHashmap();
+		printhmapCompleta();
 	}
 	
-	/*  Ha in input una casella d'angolo e la casella bianca adiacente diagonalmente
-	 *  A seconda della posizione relativa tra le due coordinate controlla il quadrante corripondente
-	 *  S'intende "quadrante" relativamente alla casella d'angolo*/
-	public void copertura(Point coordAngolo, Point coordBianca){
-		// Ianna	
+	public void controllaHashmapAttuale_V2() {
+		hmapTemp = new HashMap<Point, ArrayList<Point>>();
+		hmapTemp = copiaHashmap(hmap);
 		
-		Direzione posRelativa = Direzione.getCurrespondentDirezione(coordAngolo, coordBianca);
+		for(Map.Entry<Point, ArrayList<Point>> kv: hmap.entrySet()) {
+			// Per ogni casella d'angolo adiacente avvio il controllo copertura
+			for(Point angolo: kv.getValue()) {
+				//per ogni angolo devo considerare tutta la sua copertura
+				this.biancheCoperte = new Stack<Point>();
+				
+				System.out.println("*** STO ESAMINANDO k = " + kv.getKey() + " a = " + angolo + " inserito in BIANCHECOP ***");
+				biancheCoperte.push(new Point(kv.getKey().x, kv.getKey().y)); // inserisco la prima b coperta da questo angolo
+				//printbiancheCoperte();
+				
+				copertura_V2(angolo, kv.getKey());
+			}
+		}
+	//	printhmap();
+	//	printhmaptemp();
+		hmap = copiaHashmap(hmapTemp);	// le modifiche vengono attuate definitivamente nella hash
+	}
+	
+	public void copertura_V2(Point coordAngolo, Point coordBianca){
 		
-		if(posRelativa == Direzione.NE) {
-			controlloIQuadrante(coordBianca, coordAngolo);
+		Direzione posRelativa = Direzione.fromAtob(coordAngolo, coordBianca);
+		
+		if(posRelativa.name().equalsIgnoreCase(Direzione.SE.name())) {
+			System.out.println("\nMossa scelta tra a = " + coordAngolo + " b = " + coordBianca);
+			funSE(coordBianca, coordAngolo, Direzione.SE);
 			
-		}else if(posRelativa == Direzione.NW) {
-			controlloIIQuadrante(coordBianca, coordAngolo);
+		} else if(posRelativa.name().equalsIgnoreCase(Direzione.SW.name())){
+			System.out.println("\nMossa scelta tra a = " + coordAngolo + " b = " + coordBianca);
+			funSW(coordBianca, coordAngolo, Direzione.SW);
 			
-		}else if(posRelativa == Direzione.SW) {
-			controlloIIIQuadrante(coordBianca, coordAngolo);
+		} else if(posRelativa.name().equalsIgnoreCase(Direzione.NE.name())){
+			System.out.println("\nMossa scelta tra a = " + coordAngolo + " b = " + coordBianca);
+			funNE(coordBianca, coordAngolo, Direzione.NE);
 			
-		}else if(posRelativa == Direzione.SE) {
-			controlloIVQuadrante(coordBianca, coordAngolo);
-			
-		}else {
+		} else if(posRelativa.name().equalsIgnoreCase(Direzione.NW.name())){
+			System.out.println("\nMossa scelta tra a = " + coordAngolo + " b = " + coordBianca);
+			funNW(coordBianca, coordAngolo, Direzione.NW);
+		} else {
 			System.out.println("Errore: nessun controllo di copertura selezionato.");
 		}
 		
 	}
 	
-	// Prende iterativamente tutte le righe di hmap, e per tutti i value di una chiave assegna la copertura
-	public void controllaHashmapAttuale() {
-		hmapTemp = new HashMap<Point, ArrayList<Point>>();
-		//hmapTemp = hmap;
-		hmapTemp = copiaHashmap(hmap);
+	public void funSE(Point b, Point a, Direzione direzione){//SE : per ogni fun cambiano i check ed il prossimo temp
+		boolean ok;
 		
-		for(Map.Entry<Point, ArrayList<Point>> kv: hmap.entrySet()) {
-			// Per ogni casella d'angolo adiacente avvio il controllo copertura
-			for(Point a: kv.getValue()) {
-				copertura(a, kv.getKey());
+		int myX = spazio[b.x][b.y].coordinata.x;
+		int myY = spazio[b.x][b.y].coordinata.y;
+		Point temp = new Point();
+		
+		System.out.println("\n----funSE chiamata su " + b + " " + a + "----");
+		
+		while(biancheCoperte.size() > 0){
+			checkEst(myX, myY, a);
+			checkSud(myX, myY, a);
+		
+			myX++;
+			myY++;
+			temp.x = myX;
+			temp.y = myY;
+			System.out.println("New NEXT da esaminare = " + myX + ", " + myY);
+			
+			// se temp non è nello spazio/non è bianca, cerco un nuovo temp da biancheCoperte
+			if(!isInsideSpace(myX, myY) || !spazio[myX][myY].tipologia.equalsIgnoreCase(Casella.BIANCA)){
+				ok = true;
+				System.out.println("temp trovato AZZ.... ostacolo o fuori spazio!!!");
+				
+				do{
+					temp = biancheCoperte.pop();
+					myX = temp.x + 1;
+					myY = temp.y + 1;
+					//printbiancheCoperte();
+					
+					// se l'elemento considerato è nello spazio, è bianca e non già preso da hmapTemp con questo angolo
+					if(isInsideSpace(myX, myY) && spazio[myX][myY].tipologia.equalsIgnoreCase(Casella.BIANCA) 
+							&& !isInHtempwithA(myX, myY, a)){
+						ok = false; // allora ho trovato il nuovo temp e posso interrompere questo do while
+						insertIfNotExistbiancheCoperte(myX, myY);
+						System.out.println("temp trovato da bianche coperte!!! " + myX + ", " + myY);
+					}
+				} while(ok && biancheCoperte.size() > 0);
+			} else{
+				System.out.println("temp trovato OK non ostacolo e dentro spazio");
+				//insertIfNotExistbiancheCoperte(myX, myY);
+				if(!isInHtempwithA(myX, myY, a)){
+					biancheCoperte.push(new Point(myX, myY));
+				}
 			}
 		}
 		
-		hmap = copiaHashmap(hmapTemp);	// le modifiche vengono attuate definitivamente nella hash
+		System.out.println("---- END funSE ----");
 	}
 	
-	public void controlloIQuadrante(Point biancaIniziale, Point angoloCorrispondente) {
-		int i = biancaIniziale.x;
-		int j = biancaIniziale.y;
+	public void funSW(Point b, Point a, Direzione direzione){//SW
+		boolean ok;
 		
-		//controllo diagonale
-		while(i > -1 && j < numC && (spazio[i][j].tipologia.equalsIgnoreCase(Casella.BIANCA) /*||
-				spazio[i][j].tipologia.equalsIgnoreCase(Casella.ANGOLO) */)){ 
-			// diagonale NE
+		int myX = spazio[b.x][b.y].coordinata.x;
+		int myY = spazio[b.x][b.y].coordinata.y;
+		Point temp = new Point();
+		
+		System.out.println("\n----funSW chiamata su " + b + " " + a + "----");
+		
+		while(biancheCoperte.size() > 0){
+			checkWest(myX, myY, a);
+			checkSud(myX, myY, a);
+		
+			myX++;
+			myY--;
+			temp.x = myX;
+			temp.y = myY;
+			System.out.println("New NEXT da esaminare = " + myX + ", " + myY);
 			
-			aggiornaHash(i, j, angoloCorrispondente);
-			
-			i--;
-			j++;
+			// se temp non è nello spazio/non è bianca, cerco un nuovo temp da biancheCoperte
+			if(!isInsideSpace(myX, myY) || !spazio[myX][myY].tipologia.equalsIgnoreCase(Casella.BIANCA)){
+				ok = true;
+				System.out.println("temp trovato AZZ.... ostacolo o fuori spazio!!!");
+				
+				do{
+					temp = biancheCoperte.pop();
+					myX = temp.x + 1;
+					myY = temp.y - 1;
+					//printbiancheCoperte();
+					
+					// se l'elemento considerato è nello spazio, è bianca e non già preso da hmapTemp con questo angolo
+					if(isInsideSpace(myX, myY) && spazio[myX][myY].tipologia.equalsIgnoreCase(Casella.BIANCA) 
+							&& !isInHtempwithA(myX, myY, a)){
+						ok = false; // allora ho trovato il nuovo temp e posso interrompere questo do while
+						insertIfNotExistbiancheCoperte(myX, myY);
+						System.out.println("temp trovato da bianche coperte!!! " + myX + ", " + myY);
+					}
+				} while(ok && biancheCoperte.size() > 0);
+			} else{
+				System.out.println("temp trovato OK non ostacolo e dentro spazio");
+				//insertIfNotExistbiancheCoperte(myX, myY);
+				if(!isInHtempwithA(myX, myY, a)){
+					biancheCoperte.push(new Point(myX, myY));
+				}
+			}
 		}
 		
-		// Riassegno il punto di partenza
-		i = biancaIniziale.x;
-		j = biancaIniziale.y;
-		
-		//controllo L
-		while(i > - 1 && j < numC && (spazio[i][j].tipologia.equalsIgnoreCase(Casella.BIANCA)/*||
-				spazio[i][j].tipologia.equalsIgnoreCase(Casella.ANGOLO) */)){ //quadrante NE
-			controllaEst(i, j, angoloCorrispondente);
-			controllaNord(i - 1, j, angoloCorrispondente);
-			i--;
-			j++;
-		}
-		
+		System.out.println("---- END funSW ----");
 	}
 	
-	public void controlloIIQuadrante(Point biancaIniziale, Point angoloCorrispondente) {
-		int i = biancaIniziale.x;
-		int j = biancaIniziale.y;
+	public void funNE(Point b, Point a, Direzione direzione){//NE
+		boolean ok;
 		
-		//controllo diagonale
-		while(i > -1 && j > -1 && (spazio[i][j].tipologia.equalsIgnoreCase(Casella.BIANCA)/*||
-				spazio[i][j].tipologia.equalsIgnoreCase(Casella.ANGOLO) */)){ 
-			// diagonale NW
+		int myX = spazio[b.x][b.y].coordinata.x;
+		int myY = spazio[b.x][b.y].coordinata.y;
+		Point temp = new Point();
+		
+		System.out.println("\n----funNE chiamata su " + b + " " + a + "----");
+		
+		while(biancheCoperte.size() > 0){
+			checkEst(myX, myY, a);
+			checkNord(myX, myY, a);
+		
+			myX--;
+			myY++;
+			temp.x = myX;
+			temp.y = myY;
+			System.out.println("New NEXT da esaminare = " + myX + ", " + myY);
 			
-			aggiornaHash(i, j, angoloCorrispondente);
-			
-			i--;
-			j--;
+			// se temp non è nello spazio/non è bianca, cerco un nuovo temp da biancheCoperte
+			if(!isInsideSpace(myX, myY) || !spazio[myX][myY].tipologia.equalsIgnoreCase(Casella.BIANCA)){
+				ok = true;
+				System.out.println("temp trovato AZZ.... ostacolo o fuori spazio!!!");
+				
+				do{
+					temp = biancheCoperte.pop();
+					myX = temp.x - 1;
+					myY = temp.y + 1;
+					//printbiancheCoperte();
+					
+					// se l'elemento considerato è nello spazio, è bianca e non già preso da hmapTemp con questo angolo
+					if(isInsideSpace(myX, myY) && spazio[myX][myY].tipologia.equalsIgnoreCase(Casella.BIANCA) 
+							&& !isInHtempwithA(myX, myY, a)){
+						ok = false; // allora ho trovato il nuovo temp e posso interrompere questo do while
+						insertIfNotExistbiancheCoperte(myX, myY);
+						System.out.println("temp trovato da bianche coperte!!! " + myX + ", " + myY);
+					}
+				} while(ok && biancheCoperte.size() > 0);
+			} else{
+				System.out.println("temp trovato OK non ostacolo e dentro spazio");
+				//insertIfNotExistbiancheCoperte(myX, myY);
+				if(!isInHtempwithA(myX, myY, a)){
+					biancheCoperte.push(new Point(myX, myY));
+				}
+			}
 		}
 		
-		// Riassegno il punto di partenza
-		i = biancaIniziale.x;
-		j = biancaIniziale.y;
-		
-		//controllo L
-		while(i > -1 && j > -1 && (spazio[i][j].tipologia.equalsIgnoreCase(Casella.BIANCA)/*||
-				spazio[i][j].tipologia.equalsIgnoreCase(Casella.ANGOLO) */)){
-			controllaOvest(i, j, angoloCorrispondente);
-			controllaNord(i - 1, j, angoloCorrispondente);
-			i--;
-			j--;
-		}
-		
+		System.out.println("---- END funNE ----");
 	}
 	
-	public void controlloIIIQuadrante(Point biancaIniziale, Point angoloCorrispondente) {
-		int i = biancaIniziale.x;
-		int j = biancaIniziale.y;
+	public void funNW(Point b, Point a, Direzione direzione){//NE
+		boolean ok;
 		
-		//controllo diagonale
-		while(i < numR && j > -1 && (spazio[i][j].tipologia.equalsIgnoreCase(Casella.BIANCA)/*||
-				spazio[i][j].tipologia.equalsIgnoreCase(Casella.ANGOLO) */)){ 
-			// diagonale NW
+		int myX = spazio[b.x][b.y].coordinata.x;
+		int myY = spazio[b.x][b.y].coordinata.y;
+		Point temp = new Point();
+		
+		System.out.println("\n----funNW chiamata su " + b + " " + a + "----");
+		
+		while(biancheCoperte.size() > 0){
+			checkWest(myX, myY, a);
+			checkNord(myX, myY, a);
+		
+			myX--;
+			myY--;
+			temp.x = myX;
+			temp.y = myY;
+			System.out.println("New NEXT da esaminare = " + myX + ", " + myY);
 			
-			aggiornaHash(i, j, angoloCorrispondente);
+			// se temp non è nello spazio/non è bianca, cerco un nuovo temp da biancheCoperte
+			if(!isInsideSpace(myX, myY) || !spazio[myX][myY].tipologia.equalsIgnoreCase(Casella.BIANCA)){
+				ok = true;
+				System.out.println("temp trovato AZZ.... ostacolo o fuori spazio!!!");
+				
+				do{
+					temp = biancheCoperte.pop();
+					myX = temp.x - 1;
+					myY = temp.y - 1;
+					//printbiancheCoperte();
+					
+					// se l'elemento considerato è nello spazio, non ostacolo e non già preso da hmapTemp con questo angolo
+					if(isInsideSpace(myX, myY) && spazio[myX][myY].tipologia.equalsIgnoreCase(Casella.BIANCA) 
+							&& !isInHtempwithA(myX, myY, a)){
+						ok = false; // allora ho trovato il nuovo temp e posso interrompere questo do while
+						insertIfNotExistbiancheCoperte(myX, myY);
+						System.out.println("temp trovato da bianche coperte!!! " + myX + ", " + myY);
+					}
+				} while(ok && biancheCoperte.size() > 0);
+			} else{
+				System.out.println("temp trovato OK non ostacolo e dentro spazio");
+				//insertIfNotExistbiancheCoperte(myX, myY);
+				if(!isInHtempwithA(myX, myY, a)){
+					biancheCoperte.push(new Point(myX, myY));
+				}
+			}
+		}
+		
+		System.out.println("---- END funNW ----");
+	}
+	
+	public void insertIfNotExistbiancheCoperte(int myX, int myY){
+		if(!isInBiancheCoperte(myX, myY)){
+			biancheCoperte.push(new Point(myX, myY));
+			System.out.println("Inserito in biancheCoperte " + myX + ", " + myY);
+			//printbiancheCoperte();
+		}
+	}
+	
+	public boolean isInHtempwithA(int myX, int myY, Point a){
+		// Indica se in hmapTemp abbiamo già inserito la chiave con coordinate myX e myY con questo angolo associato a
+		
+		ArrayList<Point> lista;
+		Point angolo;
+		
+		if(hmapTemp.containsKey(spazio[myX][myY].coordinata)){
+			lista = hmapTemp.get(spazio[myX][myY].coordinata);
 			
-			i++;
-			j--;
+			for(int i = 0; i < lista.size(); i++){
+				angolo = lista.get(i);
+				if(angolo.x == a.x && angolo.y == a.y){
+					return true;
+				}
+			}
 		}
 		
-		// Riassegno il punto di partenza
-		i = biancaIniziale.x;
-		j = biancaIniziale.y;
-		
-		//controllo L
-		while(i < numR && j > -1 && (spazio[i][j].tipologia.equalsIgnoreCase(Casella.BIANCA)/*||
-				spazio[i][j].tipologia.equalsIgnoreCase(Casella.ANGOLO) */)){
-			controllaOvest(i, j, angoloCorrispondente);
-			controllaSud(i + 1, j, angoloCorrispondente);
-			i++;
-			j--;
-		}
+		return false;
 	}
 	
-	public void controlloIVQuadrante(Point biancaIniziale, Point angoloCorrispondente) {
-		int i = biancaIniziale.x;
-		int j = biancaIniziale.y;
+	public boolean isInBiancheCoperte(int nextX, int nextY){
+		// Indica se le coordinate passate sono attualmente presenti nello stack biancheCoperte
+		Point biancaCoperta;
 		
-		//controllo diagonale
-		while(i < numR && j < numC && (spazio[i][j].tipologia.equalsIgnoreCase(Casella.BIANCA)/*||
-				spazio[i][j].tipologia.equalsIgnoreCase(Casella.ANGOLO) */)){ 
-			// diagonale NW
+		for(int i = 0; i < biancheCoperte.size(); i++){
+			biancaCoperta = biancheCoperte.get(i);
+			if(biancaCoperta.x == nextX && biancaCoperta.y == nextY){
+				return true;
+			}
+		}
+		
+		return false;
+	}
+	
+	public void checkEst(int nextX, int nextY, Point a){
+		// Continuo a scorrere verso est finchè trovo caselle nello spazio BIANCHE (non angolo, non verdi, non default)  
+	/*	Point b = next;
+		int x = b.x;
+		int y = b.y;*/
+		System.out.println("\ncheckEST called on b = " + nextX + ", " + nextY);
+		
+		while(nextY < numC && spazio[nextX][nextY].tipologia.equalsIgnoreCase(Casella.BIANCA)){
+			System.out.println("check est esamina " + spazio[nextX][nextY].toString());
 			
-			aggiornaHash(i, j, angoloCorrispondente);
+		//	if(!isInBiancheCoperte(nextX, nextY)){ // se è in bianche coperte di sicuro è già in hTemp con questo angolo
+		//		biancheCoperte.push(new Point(nextX, nextY));
+//			insertIfNotExistbiancheCoperte(nextX, nextY);
+			if(!isInHtempwithA(nextX, nextY, a)){
+				insertIfNotExistbiancheCoperte(nextX, nextY);
+			}
+			System.out.println("check est ACCETTA HASH con b nuova est = " + nextX + ", " + nextY
+						+ " E AGGIUNTA A BIANCHECOPERTE se non c'era già");
+			aggiornaHash(nextX, nextY, a);
+		//	}
 			
-			i++;
-			j++;
-		}
-		
-		// Riassegno il punto di partenza
-		i = biancaIniziale.x;
-		j = biancaIniziale.y;
-		
-		//controllo L
-		while(i < numR && j < numC && (spazio[i][j].tipologia.equalsIgnoreCase(Casella.BIANCA) /*||
-				spazio[i][j].tipologia.equalsIgnoreCase(Casella.ANGOLO) */)){
-			controllaEst(i, j, angoloCorrispondente);
-			controllaSud(i + 1, j, angoloCorrispondente);
-			i++;
-			j++;
+			nextY++;
 		}
 	}
 	
-	public void controllaSud(int startRow, int startCol, Point angoloCorrispondente){ 
-		while(startRow < numR && (spazio[startRow][startCol].tipologia.equalsIgnoreCase(Casella.BIANCA) /*||
-				spazio[i][j].tipologia.equalsIgnoreCase(Casella.ANGOLO) */)){ // asse sud
-			aggiornaHash(startRow, startCol, angoloCorrispondente);
-			startRow++;
-		}
+	public void checkSud(int nextX, int nextY, Point a){
 		
+		System.out.println("\ncheckSUD calledon b = " + nextX + ", " + nextY);
+		
+		while(nextX < numR && spazio[nextX][nextY].tipologia.equalsIgnoreCase(Casella.BIANCA)){
+			
+			if(!isInHtempwithA(nextX, nextY, a)){
+				insertIfNotExistbiancheCoperte(nextX, nextY);
+			}
+			System.out.println("check sud ACCETTA HASH con b nuova sud = " + nextX + ", " + nextY
+						+ " E AGGIUNTA A BIANCHECOPERTE se non c'era già");
+			aggiornaHash(nextX, nextY, a);
+			nextX++;
+		}
 	}
 	
-	public void controllaNord(int startRow, int startCol, Point angoloCorrispondente){
-		while(startRow > -1 && (spazio[startRow][startCol].tipologia.equalsIgnoreCase(Casella.BIANCA) /*||
-				spazio[i][j].tipologia.equalsIgnoreCase(Casella.ANGOLO) */)){ // asse nord
-			aggiornaHash(startRow, startCol, angoloCorrispondente);
-			startRow--;
-		}
+	public void checkWest(int nextX, int nextY, Point a){
+		System.out.println("\ncheckOVEST calledon b = " + nextX + ", " + nextY);
 		
+		while(nextY > -1 && spazio[nextX][nextY].tipologia.equalsIgnoreCase(Casella.BIANCA)){
+			
+			if(!isInHtempwithA(nextX, nextY, a)){
+				insertIfNotExistbiancheCoperte(nextX, nextY);
+			}
+			System.out.println("check ovest ACCETTA HASH con b nuova sud = " + nextX + ", " + nextY
+						+ " E AGGIUNTA A BIANCHECOPERTE se non c'era già");
+			aggiornaHash(nextX, nextY, a);
+			nextY--;
+		}
 	}
 	
-	public void controllaEst(int startRow, int startCol, Point angoloCorrispondente){
-		while(startCol < numC && (spazio[startRow][startCol].tipologia.equalsIgnoreCase(Casella.BIANCA) /*||
-				spazio[i][j].tipologia.equalsIgnoreCase(Casella.ANGOLO) */)){ // asse est
-			aggiornaHash(startRow, startCol, angoloCorrispondente);
-			startCol++;
-		}
+	public void checkNord(int nextX, int nextY, Point a){
+		System.out.println("\ncheckNORD calledon b = " + nextX + ", " + nextY);
 		
-	}
-	
-	public void controllaOvest(int startRow, int startCol, Point angoloCorrispondente){
-		while(startCol > -1 && (spazio[startRow][startCol].tipologia.equalsIgnoreCase(Casella.BIANCA) /*||
-				spazio[i][j].tipologia.equalsIgnoreCase(Casella.ANGOLO) */)){ // asse ovest
-			aggiornaHash(startRow, startCol, angoloCorrispondente);
-			startCol--;
+		while(nextX > -1 && spazio[nextX][nextY].tipologia.equalsIgnoreCase(Casella.BIANCA)){
+			
+			if(!isInHtempwithA(nextX, nextY, a)){
+				insertIfNotExistbiancheCoperte(nextX, nextY);
+			}
+			System.out.println("check nord ACCETTA HASH con b nuova sud = " + nextX + ", " + nextY
+						+ " E AGGIUNTA A BIANCHECOPERTE se non c'era già");
+			aggiornaHash(nextX, nextY, a);
+			nextX--;
 		}
-		
 	}
 	
 	// Viene aggiornata la hashmap temporanea, che alla fine di copertura diventerà la nuova hash per la copertura successiva
 	public void aggiornaHash(int i, int j, Point angoloCorrispondente) {
-		if(!hmapTemp.containsKey(spazio[i][j].coordinata)) {
-			ArrayList<Point> caselleAngoloRelative = new ArrayList<>();
-			caselleAngoloRelative.add(angoloCorrispondente);
-			hmapTemp.put(spazio[i][j].coordinata, caselleAngoloRelative);
-			
-		//	System.out.println("L'ANGOLO [" + angoloCorrispondente.x + ", " + angoloCorrispondente.y + "] copre B = [" + i + ", " + j + "]");
-
-		}else {
-			ArrayList<Point> caselleAngoloRelative = hmapTemp.get(spazio[i][j].coordinata);
-			if(!caselleAngoloRelative.contains(angoloCorrispondente)){
-				caselleAngoloRelative.add(angoloCorrispondente);
-				hmapTemp.replace(spazio[i][j].coordinata, caselleAngoloRelative);
-
-		//		System.out.println("L'ANGOLO [" + angoloCorrispondente.x + ", " + angoloCorrispondente.y + "] copre B = [" + i + ", " + j + "]");
-
+		
+		Point nuovo = spazio[i][j].coordinata;
+		ArrayList<Point> lista;
+		if(hmapTemp.containsKey(nuovo)){
+			lista = hmapTemp.get(nuovo);
+			if(!lista.contains(angoloCorrispondente)){
+				lista.add(angoloCorrispondente);
+				hmapTemp.replace(spazio[i][j].coordinata, lista);
+				spazio[i][j].addAngolo(angoloCorrispondente);
 			}
+		} else{
+			lista = new ArrayList<Point>();
+			lista.add(angoloCorrispondente);
+			hmapTemp.put(nuovo, lista);
+			spazio[i][j].addAngolo(angoloCorrispondente);
 		}
 		
+		lista = null;
 		
-		// aggiunge le coordinate della casella angolo trovata per la corrispondente casella bianca
-		spazio[i][j].addAngolo(angoloCorrispondente);
+	//	printhmaptemp();
+	//	printhmap();
+		
+	}
+	
+	public boolean isInsideSpace(int x, int y){
+		if(x > - 1 && y > - 1 && x < numR && y < numC){
+			return true;
+		} else{
+			return false;
+		}
 	}
 	
 	/* Metodo per copiare una hashmap in modo "non shallow"
@@ -294,10 +481,49 @@ public class Rispref {
 	    return hashmapCopia;
 	}
 	
-	public void printHashmap(){
-		String print = "\n\nTHIS IS COMPLETE HASH MAP\n";
+	public void printbiancheCoperte(){
+		System.out.println("\nBIANCHE COPERTE: ");
+		for(int i = 0; i < biancheCoperte.size(); i++){
+			System.out.println(biancheCoperte.get(i));
+		}
+	}
+	
+	public void printhmaptemp(){
+		String print = "\n\nTHIS IS TEMP\n";
+		
+		for(Map.Entry<Point, ArrayList<Point>> kv: hmapTemp.entrySet()){
+			print = print + "\n Chiave B = (" + kv.getKey().x + ", " + kv.getKey().y + ")"
+					+ " Lista Valori = [ ";
+			for(Point a: kv.getValue()){
+				print = print + "(" + a.x + ", " + a.y + "), ";
+			}
+			
+			print = print + " ]";
+		}
+		
+		System.out.println(print);
+	}
+	
+	public void printhmapCompleta(){
+		String print = "\n\nTHIS IS COMPLETTTTTTTTTTTTTTTTTE\n";
 		
 		for(Map.Entry<Point, ArrayList<Point>> kv: hmapCompleta.entrySet()){
+			print = print + "\n Chiave B = (" + kv.getKey().x + ", " + kv.getKey().y + ")"
+					+ " Lista Valori = [ ";
+			for(Point a: kv.getValue()){
+				print = print + "(" + a.x + ", " + a.y + "), ";
+			}
+			
+			print = print + " ]";
+		}
+		
+		System.out.println(print);
+	}
+	
+	public void printhmap(){
+		String print = "\n\nTHIS IS HMAP\n";
+		
+		for(Map.Entry<Point, ArrayList<Point>> kv: hmap.entrySet()){
 			print = print + "\nCOMPLETA Chiave B = (" + kv.getKey().x + ", " + kv.getKey().y + ")"
 					+ " Lista Valori = [ ";
 			for(Point a: kv.getValue()){
@@ -310,87 +536,93 @@ public class Rispref {
 		System.out.println(print);
 	}
 	
-	public void avantiDopoCopertura(){
-		//Rossana
-		Direzione pmp = Direzione.d;
-		ArrayList<Point> caselleAngolo;
-		Point a, b;
-		int i;
-		boolean daValutare;
-
-		for(Map.Entry<Point, ArrayList<Point>> kv: hmap.entrySet()){
-			
-			b = kv.getKey();
-			caselleAngolo = kv.getValue();
-			pmp = Direzione.d;
-			daValutare = false; // Se  alla fine del metodo è true, sarà da valutare la PMP di B
-			
-			//OCCHIO se la casella bianca non ha PMP ancora
-			if(spazio[b.x][b.y].primaMossaRispref.name().equalsIgnoreCase(Direzione.d.name())){
-				
-			
-				if(caselleAngolo.size() > 1){
-				
-					for(i = 0; i < caselleAngolo.size(); i++){
-					
-						a = caselleAngolo.get(i);
-					
-						if(pmp.name().equalsIgnoreCase(Direzione.d.name()) 
-							|| spazio[a.x][a.y].primaMossaRispref.name().equalsIgnoreCase(pmp.name())){
-						
-							pmp = spazio[a.x][a.y].primaMossaRispref;
-						/*System.out.println("pmp = " + pmp.name() + " di A = " + a.x + ", " + a.y
-						+ " direzione A = " + spazio[a.x][a.y].primaMossaRispref.name());*/
-						} else{
-							// Se scorrendo le caselle angolo di b ne trovo una con PMP diversa dalle altre devo valutare la PMP di b
-							valutaPMPeDlib(kv.getKey(), caselleAngolo);
-							// ed interrompo lo scorrimento delle caselle d'angolo
-							i = caselleAngolo.size();
-							daValutare = true;
-						}
-					}
-				} else {
-					pmp = spazio[caselleAngolo.get(0).x][caselleAngolo.get(0).y].primaMossaRispref;
-					i = 1;
-				}
-			
-				// Se scorrendo tutte le caselle angolo di b arrivo fino qui con daValutare false,
-				// vuol dire che hanno tutte PMP uguale e la assegno a b:
-				if(!daValutare){
-					spazio[kv.getKey().x][kv.getKey().y].primaMossaRispref = pmp;
-					numCaselleBconPMP++; //OCCHIO
-				
-				//	System.out.println(" Ho assegnato pmp = " + pmp.name() + " di b = " + kv.getKey().x + ", " + kv.getKey().y);
-				// e poi rimuovo questa riga da hmap, in modo che restino in hmap solo
-				//hmap.remove(kv.getKey(), kv.getValue());
-				}
-			}
-		}
-		appendiHMap();
-	}
 	
 	public void avantiDopoCopertura_V2() {
 		ArrayList<Point> caselleAngolo;
 		
+		// Scorrere hmap va bene ma dovrebbe considerare le NUOVE caselle
 		for(Map.Entry<Point, ArrayList<Point>> kv: hmap.entrySet()) {
 			caselleAngolo = kv.getValue();
 			
-			valutaPMPeDlib(kv.getKey(), caselleAngolo);
+			// se non hanno ancora assegnata una PMP, è la prima volta che trovo questa b e la analizzo
+			if(spazio[kv.getKey().x][kv.getKey().y].primaMossaRispref.name().equalsIgnoreCase(Direzione.d.name())){
+				
+				valutaPMPeDlib_V2(kv.getKey(), caselleAngolo, MAX_PESO_CAMP);
+			} else{
+			/**
+			 *  se ho già incontrato questa b, le ho assegnato già una PMP
+			 *  MA se considerassi solamente hmap, che ogni volta che aggiungo caselle angolo si resetta,
+			 *  potrei considerare SOLO le nuove caselle d'angolo dedicate a b che ho appena salvato in hmap
+			 *  dimenticando però quelle vecchie!
+			 *  
+			 *  Quindi dovrei esaminare l'attuale dlib salvata in spazio[b.x][b.y].pesoCAMPRispref
+			 *  se è minore dei dlib rispetto alle nuove caselle angolo trovate in hmap
+			 */
+				valutaPMPeDlib_V2(kv.getKey(), caselleAngolo, spazio[kv.getKey().x][kv.getKey().y].pesoCAMRispref);
+			}
 		}
 		
 		appendiHMap();
+	}
+	
+	public void valutaPMPeDlib_V2(Point b, ArrayList<Point> caselleAngolo, double dlibMin){
+		double dlibTemp;
+		int indexAngoloMin = 0;
+		Point angolo;
+		boolean dlibMinCambiato = false;
+				
+		System.out.println("WOWOWOWOWOWOWOWO sto calcolando PMP per " + b.x + ", " + b.y + " con dlibINIZIALE = " + dlibMin
+				+ " WOWOWOWOWOWOWOWO");
+		
+		for(int i = 0; i < caselleAngolo.size(); i++) {
+			angolo = caselleAngolo.get(i);
+				
+			// dlib da A fino a b
+			dlibTemp = MyFormulas.dlibComputation(caselleAngolo.get(i), b);
+			// viene considerata anche la dlib da O ad A
+			dlibTemp = dlibTemp + spazio[angolo.x][angolo.y].pesoCAMRispref;
+			
+			System.out.println("Ho trovato pesoCAMP = " + dlibTemp);
+			
+			if(dlibTemp < dlibMin) {
+				System.out.println("YATTAAAAAAAAAAAAAA!!!! " + dlibTemp + " è minore di min = " + dlibMin);
+				
+				if(dlibMin == MAX_PESO_CAMP){
+					numCaselleBconPMP++;
+				}
+				
+				dlibMin = dlibTemp;
+				indexAngoloMin = i;
+				dlibMinCambiato = true;
+			}
+		}
+		
+		// assegno PMP e dlib alla casella bianca
+		if(dlibMinCambiato){
+			spazio[b.x][b.y].primaMossaRispref = spazio[caselleAngolo.get(indexAngoloMin).x][caselleAngolo.get(indexAngoloMin).y].primaMossaRispref;
+			spazio[b.x][b.y].pesoCAMRispref = /*spazio[caselleAngolo.get(indexAngoloMin).x][caselleAngolo.get(indexAngoloMin).y].pesoCAMRispref +*/
+					dlibMin;
+		}
 	}
 	
 	
 	// Calcola la dlib minima tra la casella bianca e tutte le sue angolo, poi assegna essa e la PMP dell'angolo corrispondente alla bianca
 	public void valutaPMPeDlib(Point b, ArrayList<Point> caselleAngolo){
 		double dlibMin = 999999999;
+		double dlibTemp;
 		int indexAngoloMin = 0;
+		Point angolo;
 		
-		if(spazio[b.x][b.y].primaMossaRispref.name().equalsIgnoreCase(Direzione.d.name())){
+		//if(spazio[b.x][b.y].primaMossaRispref.name().equalsIgnoreCase(Direzione.d.name())){
 		
 			for(int i = 0; i < caselleAngolo.size(); i++) {
-				double dlibTemp = MyFormulas.dlibComputation(caselleAngolo.get(i), b);
+				angolo = caselleAngolo.get(i);
+				
+				// dlib da A fino a b
+				dlibTemp = MyFormulas.dlibComputation(caselleAngolo.get(i), b);
+				// viene considerata anche la dlib da O ad A
+				dlibTemp = dlibTemp + spazio[angolo.x][angolo.y].pesoCAMRispref;
+				
 				if(dlibTemp < dlibMin) {
 					dlibMin = dlibTemp;
 					indexAngoloMin = i;
@@ -399,10 +631,10 @@ public class Rispref {
 		
 			// assegno PMP e dlib alla casella bianca
 			spazio[b.x][b.y].primaMossaRispref = spazio[caselleAngolo.get(indexAngoloMin).x][caselleAngolo.get(indexAngoloMin).y].primaMossaRispref;
-			spazio[b.x][b.y].pesoCAMRispref = spazio[caselleAngolo.get(indexAngoloMin).x][caselleAngolo.get(indexAngoloMin).y].pesoCAMRispref + dlibMin;
+			spazio[b.x][b.y].pesoCAMRispref = /*spazio[caselleAngolo.get(indexAngoloMin).x][caselleAngolo.get(indexAngoloMin).y].pesoCAMRispref +*/
+					dlibMin;
 			numCaselleBconPMP++;
-			System.out.println(numCaselleBconPMP);
-		}
+		//}
 		
 	}
 	

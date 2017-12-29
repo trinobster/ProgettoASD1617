@@ -177,16 +177,16 @@ public class SettaCaselle {
 								//	spazio[b.numRiga][b.numColonna].isCovered = true;
 									caselleAngolo.push(spazio[isA.coordinata.x][isA.coordinata.y]);
 									
-									if(!hmap.containsKey(b.coordinata)){
+									if(!hmap.containsKey(spazio[b.coordinata.x][b.coordinata.y].coordinata)){
 										caselleAngoloRelative = new ArrayList<>();
-										caselleAngoloRelative.add(isA.coordinata);
-										hmap.put(b.coordinata, caselleAngoloRelative);
+										caselleAngoloRelative.add(spazio[isA.coordinata.x][isA.coordinata.y].coordinata);
+										hmap.put(spazio[b.coordinata.x][b.coordinata.y].coordinata, caselleAngoloRelative);
 										
 									} else{
-										caselleAngoloRelative = hmap.get(b.coordinata);
+										caselleAngoloRelative = hmap.get(spazio[b.coordinata.x][b.coordinata.y].coordinata);
 									//	if(!caselleAngoloRelative.contains(isA.coordinata)){
-											caselleAngoloRelative.add(isA.coordinata);
-											hmap.replace(b.coordinata, caselleAngoloRelative);
+											caselleAngoloRelative.add(spazio[isA.coordinata.x][isA.coordinata.y].coordinata);
+											hmap.replace(spazio[b.coordinata.x][b.coordinata.y].coordinata, caselleAngoloRelative);
 									//	}
 										
 									}
